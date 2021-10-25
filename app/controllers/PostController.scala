@@ -19,6 +19,4 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
                                val cache: Cache,
                                implicit val ec: ExecutionContext) extends BaseController {
 
-
-
 }

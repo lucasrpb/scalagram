@@ -3,9 +3,10 @@ package controllers
 import actions.LoginAction
 import app.Cache
 import models.{Follower, SessionInfo}
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsObject, JsString, Json, Reads}
 import play.api.mvc._
 import repositories.FeedRepository
+import Follower._
 
 import java.util.UUID
 import javax.inject._
@@ -36,6 +37,13 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
         "status" -> JsString("You succesfully followed this user!")
       ))
     }
+  }
+
+  def getFollowers(start: Int) = loginAction.async { implicit request: Request[AnyContent] =>
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    repo.getFollowers(id, start).map(followers => Ok(Json.arr(followers)))
   }
 
 }

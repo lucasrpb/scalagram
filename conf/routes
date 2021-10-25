@@ -39,5 +39,7 @@ PUT     /profiles  controllers.ProfileController.upsert()
 +nocsrf
 POST   /feed/follow controllers.FeedController.follow()
 
+GET    /feed/follow/:start controllers.FeedController.getFollowers(start: Int)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

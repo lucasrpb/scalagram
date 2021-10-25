@@ -1,17 +1,19 @@
 package repositories
 
 import com.google.inject.ImplementedBy
-import models.slickmodels.FollowerTable
+import models.Post
+import models.slickmodels.{FollowerTable, PostTable}
 import play.api.inject.ApplicationLifecycle
 import slick.jdbc.PostgresProfile.api._
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 @ImplementedBy(classOf[PostRepositoryImpl])
 trait PostRepository {
-
+  def insert(id: UUID, post: Post): Future[Boolean]
 }
 
 @Singleton
@@ -24,7 +26,7 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   val setup = DBIO.seq(
     // Create the tables, including primary and foreign keys
-    FollowerTable.followers.schema.createIfNotExists
+    PostTable.posts.schema.createIfNotExists
   )
 
   val setupFuture = db.run(setup).onComplete {
@@ -32,4 +34,7 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     case Failure(ex) => ex.printStackTrace()
   }
 
+  override def insert(id: UUID, post: Post): Future[Boolean] = {
+    db.run(PostTable.posts += post).map(_ == 1)
+  }
 }

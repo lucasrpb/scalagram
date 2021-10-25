@@ -43,5 +43,12 @@ POST   /feed/follow controllers.FeedController.follow()
 
 GET    /feed/follow/:start controllers.FeedController.getFollowers(start: Int)
 
+# POST CONTROLLER
++nocsrf
+POST   /posts   controllers.PostController.insert()
+
++nocsrf
+POST   /posts/upload controllers.PostController.upload()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

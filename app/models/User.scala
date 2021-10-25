@@ -23,5 +23,5 @@ case class User(id: UUID = UUID.randomUUID(),
 }
 
 object User {
-  implicit val userFormat = Json.using[Json.WithDefaultValues].format[User]
+  implicit val userFormat = Jsonc
 }

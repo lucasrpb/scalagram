@@ -2,7 +2,7 @@ package repositories
 
 import app.Constants
 import com.google.inject.ImplementedBy
-import models.slickmodels.UserTable
+import models.slickmodels.{ProfileTable, UserTable}
 import models.{CodeInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.Codecs.sha1
@@ -45,6 +45,7 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   val setup = DBIO.seq(
     // Create the tables, including primary and foreign keys
     UserTable.users.schema.createIfNotExists,
+    ProfileTable.profiles.schema.createIfNotExists,
 
     // Insert some suppliers
     // UserTable.users += (UUID.randomUUID(), "lucasrpb", "lucasrpb@gmail.com")

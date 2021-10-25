@@ -2,9 +2,9 @@ package controllers
 
 import actions.{AccessTokenAction, LoginAction}
 import app.{Cache, Constants}
-import models.{SessionInfo, TokenInfo, User, UserStatus}
+import models.{CodeInfo, SessionInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.Logging
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{JsBoolean, JsString, Json}
 import play.api.mvc._
 import repositories.UserRepository
 
@@ -29,7 +29,12 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
 
     logger.info(s"${user}")
 
-    repo.insert(user).map(r => Ok(r.toString))
+    repo.insert(user).map {
+      case None => InternalServerError("Something bad happened!")
+      case Some(code) => Ok(Json.obj(
+        "code" -> JsString(code)
+      ))
+    }
   }
 
   def confirm(code: String) = Action.async { implicit request: Request[AnyContent] =>
@@ -51,7 +56,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
 
       repo.confirm(code).map { ok =>
         Results.PreconditionFailed(Json.obj(
-          "status" -> JsString("User confirmed succesfully!")
+          "status" -> JsString("User confirmed successfully!")
         ))
       }
     }
@@ -59,8 +64,8 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
     for {
       opt <- repo.getCodeInfo(code)
       result <- opt match {
+        case Some(CodeInfo(_, lastUpdate, Some(status))) => confirm(status, lastUpdate)
         case None => Future.successful(NotFound(s"Invalid confirmation code!"))
-        case Some((status, lastUpdate)) => confirm(status, lastUpdate)
       }
     } yield {
       result
@@ -141,6 +146,16 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
         }
 
     }
+  }
+
+  def update() = loginAction.async { implicit request: Request[AnyContent] =>
+    val data = request.body.asJson.get.as[UserUpdate]
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    repo.update(id, data).map(ok => Ok(Json.obj(
+      "ok" -> JsBoolean(ok)
+    )))
   }
 
   def show() = loginAction { implicit request: Request[AnyContent] =>

@@ -3,8 +3,10 @@ package repositories
 import app.Constants
 import com.google.inject.ImplementedBy
 import models.slickmodels.UserTable
-import models.{TokenInfo, User, UserStatus}
+import models.{CodeInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.inject.ApplicationLifecycle
+import play.api.libs.Codecs.sha1
+import slick.dbio.DBIOAction
 import slick.jdbc.PostgresProfile.api._
 
 import java.util.UUID
@@ -14,8 +16,11 @@ import scala.util.{Failure, Success}
 
 @ImplementedBy(classOf[UserRepositoryImpl])
 trait UserRepository {
-  def insert(user: User): Future[Boolean]
-  def getCodeInfo(code: String): Future[Option[(Int, Long)]]
+  def insert(user: User): Future[Option[String]]
+
+  def getCodeInfo(code: String): Future[Option[CodeInfo]]
+  def getCodeInfoById(id: UUID): Future[Option[CodeInfo]]
+
   def confirm(code: String): Future[Boolean]
 
   def generateNewCode(login: String): Future[Option[String]]
@@ -25,6 +30,8 @@ trait UserRepository {
   def getTokenByLogin(login: String, password: String): Future[Option[TokenInfo]]
 
   def generateNewToken(refreshToken: String): Future[Option[TokenInfo]]
+
+  def update(id: UUID, info: UserUpdate): Future[Boolean]
 }
 
 @Singleton
@@ -48,15 +55,23 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     case Failure(ex) => ex.printStackTrace()
   }
 
-  override def insert(user: User): Future[Boolean] = {
+  override def insert(user: User): Future[Option[String]] = {
     val op = UserTable.users += (user.id, user.username, user.password, user.email, user.phone,
       user.code, user.token, user.createdAt, user.codeLastUpdate, user.tokenLastUpdate, user.status, user.refreshToken)
-    db.run(op).map(_ == 1)
+    db.run(op).map {
+      case n if n == 1 => Some(user.code)
+      case _ => None
+    }
   }
 
-  override def getCodeInfo(code: String): Future[Option[(Int, Long)]] = {
-    val op = UserTable.users.filter(_.code === code).map(u => u.status -> u.codeLastUpdate).result
-    db.run(op).map(_.headOption)
+  override def getCodeInfo(code: String): Future[Option[CodeInfo]] = {
+    val op = UserTable.users.filter(_.code === code).map(u => Tuple3(u.code, u.codeLastUpdate, u.status)).result
+    db.run(op).map(_.headOption.map{case (code, lastUpdate, status) => CodeInfo(code, lastUpdate, Some(status))})
+  }
+
+  override def getCodeInfoById(id: UUID): Future[Option[CodeInfo]] = {
+    val op = UserTable.users.filter(_.id === id).map(u => Tuple3(u.code, u.codeLastUpdate, u.status)).result
+    db.run(op).map(_.headOption.map{case (code, lastUpdate, status) => CodeInfo(code, lastUpdate, Some(status))})
   }
 
   override def confirm(code: String): Future[Boolean] = {
@@ -85,13 +100,13 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     val refreshToken = UUID.randomUUID().toString
     val expiresAt = now + Constants.TOKEN_TTL
 
-   val action = (for {
+    val action = for {
      sel <- UserTable.users.filter(u => (u.username === login || u.email === login) &&
-                                         u.status === UserStatus.ACTIVE && u.password === password).result
+       u.status === UserStatus.ACTIVE && u.password === password).result
      n <- if(!sel.isEmpty) UserTable.users.filter(_.id === sel.head._1.asColumnOf[UUID])
        .map(u => u.tokenLastUpdate -> u.token -> u.refreshToken)
        .update(now -> token -> refreshToken) else DBIO.successful(0)
-    } yield if(n == 1) Some(TokenInfo(token, refreshToken, login, sel.head._1, expiresAt)) else None)
+    } yield if(n == 1) Some(TokenInfo(token, refreshToken, login, sel.head._1, expiresAt)) else None
 
     db.run(action)
   }
@@ -110,5 +125,29 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     } yield if(n == 1) Some(TokenInfo(token, refreshToken, sel.head._2, sel.head._1, expiresAt)) else None)
 
     db.run(action)
+  }
+
+  override def update(id: UUID, info: UserUpdate): Future[Boolean] = {
+    val sel = UserTable.users.filter(u => u.id === id && u.status === UserStatus.ACTIVE)
+
+    var actions = sel.result
+
+    if(info.username.isDefined){
+      actions >> sel.map(_.username).update(info.username.get)
+    }
+
+    if(info.phone.isDefined){
+      actions >> sel.map(_.phone).update(info.phone.get)
+    }
+
+    if(info.email.isDefined){
+      actions >> sel.map(_.email).update(info.email.get)
+    }
+
+    if(info.password.isDefined){
+      actions >> sel.map(_.password).update(sha1(info.password.get))
+    }
+
+    db.run(actions).map(_ => true)
   }
 }

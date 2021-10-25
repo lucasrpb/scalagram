@@ -3,7 +3,7 @@ package actions
 import app.Cache
 import models.SessionInfo
 import play.api.Logging
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
 
@@ -35,7 +35,9 @@ class LoginAction @Inject()(parser: BodyParsers.Default, val cache: Cache)(impli
 
   override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
     if(!isValidSession(request)){
-      Future.successful(Unauthorized("You must be logged to execute this action!"))
+      Future.successful(Unauthorized(Json.obj(
+        "error" -> JsString("You must be logged to execute this action!")
+      )))
     } else {
       block(request)
     }

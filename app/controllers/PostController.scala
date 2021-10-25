@@ -4,6 +4,7 @@ import actions.LoginAction
 import app.{Cache, Constants}
 import models.{Post, Profile, SessionInfo}
 import play.api.Logging
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc._
 import repositories.PostRepository
@@ -44,8 +45,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
 
   // Use binary in postman if using body parser parse.temporaryFile...
 
-  def upload() = loginAction.async(parse.multipartFormData) { implicit request =>
-
+  def processUpload(request: Request[MultipartFormData[TemporaryFile]]): Future[Result] = {
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
@@ -53,42 +53,46 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     val dataOpt = request.body.dataParts.get("data")
 
     if(imgOpt.isEmpty){
-      Future.successful(NotFound(Json.obj(
+      return Future.successful(NotFound(Json.obj(
         "error" -> JsString("Missing image!")
       )))
-    } else if(dataOpt.isEmpty) {
-      Future.successful(NotFound(Json.obj(
+    }
+
+    if(dataOpt.isEmpty) {
+      return Future.successful(NotFound(Json.obj(
         "error" -> JsString("Missing data!")
       )))
-    } else {
-      val file = imgOpt.get
-      val img = file.ref
-      val fileId = UUID.randomUUID()
-      val data = (Json.parse(dataOpt.get.head.getBytes()).as[JsObject] ++ Json.obj(
-        "userId" -> JsString(session.id),
-        "id" -> JsString(fileId.toString)
-      )).as[Post]
+    }
 
-      val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
+    val file = imgOpt.get
+    val img = file.ref
+    val fileId = UUID.randomUUID()
+    val data = (Json.parse(dataOpt.get.head.getBytes()).as[JsObject] ++ Json.obj(
+      "userId" -> JsString(session.id),
+      "id" -> JsString(fileId.toString)
+    )).as[Post]
 
-      if(Files.exists(path)){
+    val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
 
-        repo.insert(id, data).map {
-          case false => InternalServerError(Json.obj(
-            "error" -> JsString("Some error occurred!")
-          ))
+    if(Files.exists(path)){
+      return repo.insert(id, data).map {
+        case false => InternalServerError(Json.obj(
+          "error" -> JsString("Some error occurred!")
+        ))
 
-          case true => Ok(Json.obj(
-            "status" -> JsString("Post inserted successfully!")
-          ))
-        }
-
-      } else {
-        Future.successful(InternalServerError(Json.obj(
-          "error" -> "There was an error uploading the file!"
-        )))
+        case true => Ok(Json.obj(
+          "status" -> JsString("Post inserted successfully!")
+        ))
       }
     }
+
+    Future.successful(InternalServerError(Json.obj(
+      "error" -> "There was an error uploading the file!"
+    )))
+  }
+
+  def upload() = loginAction.async(parse.multipartFormData) { implicit request =>
+    processUpload(request)
   }
 
 }

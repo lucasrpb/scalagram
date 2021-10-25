@@ -45,8 +45,6 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   val setup = DBIO.seq(
     // Create the tables, including primary and foreign keys
     UserTable.users.schema.createIfNotExists,
-    ProfileTable.profiles.schema.createIfNotExists,
-
     // Insert some suppliers
     // UserTable.users += (UUID.randomUUID(), "lucasrpb", "lucasrpb@gmail.com")
   )
@@ -131,24 +129,24 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   override def update(id: UUID, info: UserUpdate): Future[Boolean] = {
     val sel = UserTable.users.filter(u => u.id === id && u.status === UserStatus.ACTIVE)
 
-    var actions = sel.result
+    var actions = Seq.empty[DBIO[Int]]
 
     if(info.username.isDefined){
-      actions >> sel.map(_.username).update(info.username.get)
+      actions :+= sel.map(_.username).update(info.username.get)
     }
 
     if(info.phone.isDefined){
-      actions >> sel.map(_.phone).update(info.phone.get)
+      actions :+= sel.map(_.phone).update(info.phone.get)
     }
 
     if(info.email.isDefined){
-      actions >> sel.map(_.email).update(info.email.get)
+      actions :+= sel.map(_.email).update(info.email.get)
     }
 
     if(info.password.isDefined){
-      actions >> sel.map(_.password).update(sha1(info.password.get))
+      actions :+= sel.map(_.password).update(sha1(info.password.get))
     }
 
-    db.run(actions).map(_ => true)
+    db.run(DBIO.sequence(actions).transactionally).map(_ => true)
   }
 }

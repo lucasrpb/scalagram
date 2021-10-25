@@ -45,7 +45,7 @@ GET    /feed/follow/:start controllers.FeedController.getFollowers(start: Int)
 
 # POST CONTROLLER
 +nocsrf
-POST   /posts   controllers.PostController.insert()
+#POST   /posts   controllers.PostController.insert()
 
 +nocsrf
 POST   /posts/upload controllers.PostController.upload()

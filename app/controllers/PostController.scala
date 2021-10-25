@@ -24,7 +24,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
                                val cache: Cache,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
 
-  def insert() = loginAction.async { implicit request: Request[AnyContent] =>
+  /*def insert() = loginAction.async { implicit request: Request[AnyContent] =>
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val data = (request.body.asJson.get.as[JsObject] ++ Json.obj("userId" -> JsString(session.id))).as[Post]
     val id = UUID.fromString(session.id)
@@ -40,7 +40,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
         "status" -> JsString("Post inserted successfully!")
       ))
     }
-  }
+  }*/
 
   // Use binary in postman if using body parser parse.temporaryFile...
 

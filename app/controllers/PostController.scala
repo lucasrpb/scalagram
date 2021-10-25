@@ -1,7 +1,7 @@
 package controllers
 
 import actions.LoginAction
-import app.Cache
+import app.{Cache, Constants}
 import models.{Post, Profile, SessionInfo}
 import play.api.Logging
 import play.api.libs.json.{JsObject, JsString, Json}
@@ -69,7 +69,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
         "id" -> JsString(fileId.toString)
       )).as[Post]
 
-      val path = img.moveTo(Paths.get(s"posts/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
+      val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
 
       if(Files.exists(path)){
 

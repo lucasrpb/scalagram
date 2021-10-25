@@ -7,8 +7,14 @@
 GET     /                           controllers.HomeController.index()
 
 # USERS CONTROLLER
+
++nocsrf
 POST    /users  controllers.UserController.insert()
+
++nocsrf
 PUT     /users/confirm/:code    controllers.UserController.confirm(code)
+
++nocsrf
 PUT     /users/code/:login  controllers.UserController.generateNewCode(login)
 
 +nocsrf
@@ -28,6 +34,10 @@ PUT     /users/info     controllers.UserController.update()
 # PROFILE CONTROLLER
 +nocsrf
 PUT     /profiles  controllers.ProfileController.upsert()
+
+# FEED CONTROLLER
++nocsrf
+POST   /feed/follow controllers.FeedController.follow()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

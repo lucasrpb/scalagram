@@ -33,4 +33,13 @@ class ProfileController @Inject()(val controllerComponents: ControllerComponents
     )))
   }
 
+  def getProfile(id: String) = Action.async { implicit request: Request[AnyContent] =>
+    repo.get(UUID.fromString(id)).map {
+      case None => NotFound(Json.obj(
+        "error" -> JsString("Profile not found")
+      ))
+      case Some(profile) => Ok(Json.toJson(profile))
+    }
+  }
+
 }

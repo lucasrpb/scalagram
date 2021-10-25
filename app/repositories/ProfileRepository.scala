@@ -14,6 +14,7 @@ import scala.util.{Failure, Success}
 @ImplementedBy(classOf[ProfileRepositoryImpl])
 trait ProfileRepository {
   def upsert(id: UUID, profile: Profile): Future[Boolean]
+  def get(id: UUID): Future[Option[Profile]]
 }
 
 @Singleton
@@ -47,5 +48,9 @@ class ProfileRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecy
     }
 
     db.run(action)
+  }
+
+  override def get(id: UUID): Future[Option[Profile]] = {
+    db.run(ProfileTable.profiles.filter(_.userId === id).result.map(_.headOption))
   }
 }

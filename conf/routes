@@ -35,6 +35,8 @@ PUT     /users/info     controllers.UserController.update()
 +nocsrf
 PUT     /profiles  controllers.ProfileController.upsert()
 
+GET     /profiles/:id  controllers.ProfileController.getProfile(id)
+
 # FEED CONTROLLER
 +nocsrf
 POST   /feed/follow controllers.FeedController.follow()

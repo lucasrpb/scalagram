@@ -54,7 +54,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   override def getFollowers(id: UUID, start: Int = 0): Future[Seq[FollowerDetailed]] = {
     db.run(FollowerTable.followers.filter(_.userId === id)
       .join(UserTable.users).on{case (p, u) => p.followerId === u.id}
-      .drop(start).take(2)
+      .drop(start)
+      .take(2)
       .result
     ).map { result =>
       result.map { case (p, u) =>

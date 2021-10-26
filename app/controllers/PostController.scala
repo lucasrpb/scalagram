@@ -2,7 +2,8 @@ package controllers
 
 import actions.LoginAction
 import app.{Cache, Constants}
-import models.{Post, Profile, SessionInfo}
+import models.{Post, SessionInfo}
+import models.Post._
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsObject, JsString, Json}
@@ -93,6 +94,10 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
 
   def upload() = loginAction.async(parse.multipartFormData) { implicit request =>
     processUpload(request)
+  }
+
+  def getPostsByUserId(id: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
+    repo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.arr(posts)))
   }
 
 }

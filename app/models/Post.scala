@@ -1,6 +1,7 @@
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads, Writes}
+
 import java.util.UUID
 
 case class Post(id: UUID = UUID.randomUUID,
@@ -12,4 +13,7 @@ case class Post(id: UUID = UUID.randomUUID,
 
 object Post {
   implicit val postFormat = Json.using[Json.WithDefaultValues].format[Post]
+  implicit val postSeqReads = Reads.seq(postFormat)
+  implicit val postSeqWrites = Writes.seq(postFormat)
 }
+c

@@ -1,16 +1,20 @@
 package services
 
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, ProducerConfig, ProducerMessage, PulsarClient, PulsarClientConfig, Subscription, Topic}
+import com.sksamuel.pulsar4s.akka.streams.source
 import models.{Feed, FeedJob}
-import org.apache.pulsar.client.api.{Consumer, Message, MessageId, PulsarClient, SubscriptionType}
+import org.apache.pulsar.client.api.{MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.Json
 import repositories.FeedRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @Singleton
 class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
@@ -23,27 +27,32 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
   val PULSAR_SERVICE_URL = "pulsar://localhost:6650"
   val TOPIC = "public/scalagram/feed-jobs"
 
-  protected val client = PulsarClient.builder()
+  /*protected val client = PulsarClient.builder()
     .serviceUrl(PULSAR_SERVICE_URL)
-    .build()
+    .build()*/
 
-  protected val producer = client.newProducer()
-    .topic(TOPIC)
-    .create()
+  implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-job-handler")
+  implicit val mat = Materializer(system)
 
-  lifecycle.addStopHook { () =>
+  val config = PulsarClientConfig(serviceUrl = PULSAR_SERVICE_URL, allowTlsInsecureConnection = Some(true))
+  val client = PulsarClient(PULSAR_SERVICE_URL)
+  implicit val schema: Schema[Array[Byte]] = Schema.BYTES
+
+  protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
+    enableBatching = Some(false), blockIfQueueFull = Some(false)))
+
+  /*lifecycle.addStopHook { () =>
     for {
-      _ <- producer.closeAsync().toScala
-      _ <- consumer.closeAsync().toScala
-      _ <- client.closeAsync().toScala
+      _ <- client.closeAsync
     } yield {}
+  }*/
+
+  def send(data: Array[Byte]): Future[Boolean] = {
+    val record = ProducerMessage[Array[Byte]](data)
+    Source.single(record).run().map(_ => true)
   }
 
-  def send(data: Array[Byte]): Future[MessageId] = {
-    producer.sendAsync(data).toCompletableFuture.toScala
-  }
-
-  protected def listener(consumer: Consumer[Array[Byte]], msg: Message[Array[Byte]]): Unit = {
+  /*protected def listener(consumer: Consumer[Array[Byte]], msg: Message[Array[Byte]]): Unit = {
     val job = Json.parse(msg.getData).as[FeedJob]
 
     logger.info(s"${Console.GREEN_B}PROCESSING JOB: ${job}${Console.RESET}\n")
@@ -90,5 +99,56 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
     .subscriptionType(SubscriptionType.Shared)
     .subscriptionName("feed-job-handler")
     .messageListener(listener)
-    .subscribe()
+    .subscribe()*/
+
+  val consumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"feed-job-handler"),
+    topics = Seq(Topic(TOPIC)),
+    subscriptionType = Some(SubscriptionType.Exclusive),
+    subscriptionInitialPosition = Some(SubscriptionInitialPosition.Latest)),
+  )
+
+  val consumerSource = source(consumerFn, Some(MessageId.latest))
+
+  def handler(msg: ConsumerMessage[Array[Byte]]): Future[Boolean] = {
+    val job = Json.parse(msg.value).as[FeedJob]
+
+    logger.info(s"${Console.GREEN_B}PROCESSING JOB: ${job}${Console.RESET}\n")
+
+    feedRepo.insertPostIds(job.followers.map { f =>
+      Feed(
+        job.fromUserId,
+        f,
+        job.postId,
+        job.postedAt
+      )
+    }).flatMap { ok =>
+
+      feedRepo.getFollowerIds(job.fromUserId, job.start, 2).flatMap { followers =>
+
+        logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
+
+        if(!followers.isEmpty){
+          send(Json.toBytes(Json.toJson(
+            FeedJob(
+              job.postId,
+              job.fromUserId,
+              job.postedAt,
+              followers,
+              job.start + followers.length
+            )
+          )))
+        } else {
+          Future.successful(true)
+        }
+
+      }
+
+    }
+
+  }
+
+  consumerSource.
+    mapAsync(1)(handler)
+    .run()
+
 }

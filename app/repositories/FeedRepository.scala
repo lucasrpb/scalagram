@@ -78,12 +78,12 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   }
 
   override def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]] = {
-    db.run(FollowerTable.followers.filter(_.userId === id)
-      .sortBy(_.followerId)
+    db.run(FollowerTable.followers.filter(_.followerId === id)
+      .sortBy(_.userId)
       .drop(start)
       .take(n)
       .result
-    ).map(_.map(_.followerId))
+    ).map(_.map(_.userId))
   }
 
   override def insertPostIds(posts: Seq[Feed]): Future[Boolean] = {

@@ -41,9 +41,9 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   override def getPostsByUserId(id: UUID, start: Int = 0, n: Int): Future[Seq[Post]] = {
     db.run(PostTable.posts.filter(_.userId === id)
+      .sortBy(_.postedAt.desc)
       .drop(start)
       .take(n)
-      .sortBy(_.postedAt.desc)
       .result
     )
   }

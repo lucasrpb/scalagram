@@ -16,4 +16,3 @@ object Post {
   implicit val postSeqReads = Reads.seq(postFormat)
   implicit val postSeqWrites = Writes.seq(postFormat)
 }
-c

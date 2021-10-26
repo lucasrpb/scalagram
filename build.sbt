@@ -6,6 +6,7 @@ version := "1.0-SNAPSHOT"
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.13.6"
+lazy val pulsar4sVersion = "2.7.3"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
@@ -20,6 +21,20 @@ libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.19.7"
 libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.7"
 libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.7"
 libraryDependencies += "com.yugabyte" % "jedis" % "2.9.0-yb-16"
+
+/*libraryDependencies ++= Seq(
+
+  "org.apache.pulsar" % "pulsar-client" % "2.8.0",
+  "org.apache.pulsar" % "pulsar-client-admin" % "2.8.0",
+
+  "com.sksamuel.pulsar4s" %% "pulsar4s-core" % pulsar4sVersion,
+
+  // for the akka-streams integration
+  "com.sksamuel.pulsar4s" %% "pulsar4s-akka-streams" % pulsar4sVersion,
+
+  // if you want to use play-json for schemas
+  "com.sksamuel.pulsar4s" %% "pulsar4s-play-json" % pulsar4sVersion
+)*/
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.scalagram.controllers._"

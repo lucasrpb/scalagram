@@ -2,7 +2,7 @@ package repositories
 
 import com.google.inject.ImplementedBy
 import models.{Follower, FollowerDetailed}
-import models.slickmodels.{FollowerTable, UserTable}
+import models.slickmodels.{FeedTable, FollowerTable, UserTable}
 import play.api.inject.ApplicationLifecycle
 import slick.jdbc.PostgresProfile.api._
 
@@ -29,7 +29,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   val setup = DBIO.seq(
     // Create the tables, including primary and foreign keys
-    FollowerTable.followers.schema.createIfNotExists
+    FollowerTable.followers.schema.createIfNotExists,
+    FeedTable.feeds.schema.createIfNotExists
   )
 
   val setupFuture = db.run(setup).onComplete {

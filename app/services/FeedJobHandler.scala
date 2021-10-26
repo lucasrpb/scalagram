@@ -12,6 +12,7 @@ import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+@Singleton
 class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
                                lifecycle: ApplicationLifecycle,
                                val feedRepo: FeedRepository
@@ -59,9 +60,9 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
 
         consumer.acknowledge(msg)
 
-        feedRepo.getFollowerIds(job.fromUserId, job.start + job.followers.length, 2).flatMap { followers =>
+        feedRepo.getFollowerIds(job.fromUserId, job.start, 2).flatMap { followers =>
 
-          logger.info(s"more followers: ${followers}\n")
+          logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
 
           if(!followers.isEmpty){
             send(Json.toBytes(Json.toJson(
@@ -69,7 +70,8 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
                 job.postId,
                 job.fromUserId,
                 job.postedAt,
-                followers
+                followers,
+                job.start + followers.length
               )
             )))
           } else {
@@ -85,7 +87,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
 
   protected val consumer = client.newConsumer()
     .topic(TOPIC)
-    .subscriptionType(SubscriptionType.Exclusive)
+    .subscriptionType(SubscriptionType.Shared)
     .subscriptionName("feed-job-handler")
     .messageListener(listener)
     .subscribe()

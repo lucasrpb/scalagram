@@ -1,8 +1,8 @@
 package repositories
 
 import com.google.inject.ImplementedBy
-import models.{Feed, Follower, FollowerDetailed}
-import models.slickmodels.{FeedTable, FollowerTable, UserTable}
+import models.{Feed, Follower, FollowerDetailed, Post}
+import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
 import play.api.inject.ApplicationLifecycle
 import slick.jdbc.PostgresProfile.api._
 
@@ -19,6 +19,8 @@ trait FeedRepository {
   def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]]
 
   def insertPostIds(posts: Seq[Feed]): Future[Boolean]
+
+  def getFeedPosts(id: UUID, start: Int, n: Int): Future[Seq[Post]]
 
 }
 
@@ -76,8 +78,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   }
 
   override def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]] = {
-    db.run(FollowerTable.followers.filter(_.followerId === id)
-      .sortBy(_.userId)
+    db.run(FollowerTable.followers.filter(_.userId === id)
+      .sortBy(_.followerId)
       .drop(start)
       .take(n)
       .result
@@ -86,5 +88,16 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   override def insertPostIds(posts: Seq[Feed]): Future[Boolean] = {
     db.run((FeedTable.feeds ++= posts).transactionally).map(_.isDefined)
+  }
+
+  override def getFeedPosts(id: UUID, start: Int, n: Int): Future[Seq[Post]] = {
+    db.run(
+      FeedTable.feeds.filter(_.followerId === id)
+        .sortBy(_.postId)
+        .drop(start)
+        .take(n)
+        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
+        .result
+    ).map(_.map(_._2))
   }
 }

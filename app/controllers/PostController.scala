@@ -99,7 +99,8 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
                 data.id,
                 data.userId,
                 data.postedAt,
-                followers :+ data.userId
+                followers :+ data.userId,
+                followers.length
               )
             ))).map { m =>
               Ok(Json.obj(

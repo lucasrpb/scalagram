@@ -1,7 +1,7 @@
 package repositories
 
 import com.google.inject.ImplementedBy
-import models.{Follower, FollowerDetailed}
+import models.{Feed, Follower, FollowerDetailed}
 import models.slickmodels.{FeedTable, FollowerTable, UserTable}
 import play.api.inject.ApplicationLifecycle
 import slick.jdbc.PostgresProfile.api._
@@ -15,7 +15,10 @@ import scala.util.{Failure, Success}
 trait FeedRepository {
 
   def follow(id: UUID, data: Follower): Future[Boolean]
-  def getFollowers(id: UUID, start: Int = 0): Future[Seq[FollowerDetailed]]
+  def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]]
+  def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]]
+
+  def insertPostIds(posts: Seq[Feed]): Future[Boolean]
 
 }
 
@@ -28,9 +31,10 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   }
 
   val setup = DBIO.seq(
+    FeedTable.feeds.schema.createIfNotExists,
+
     // Create the tables, including primary and foreign keys
-    FollowerTable.followers.schema.createIfNotExists,
-    FeedTable.feeds.schema.createIfNotExists
+    FollowerTable.followers.schema.createIfNotExists
   )
 
   val setupFuture = db.run(setup).onComplete {
@@ -52,11 +56,12 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run(action)
   }
 
-  override def getFollowers(id: UUID, start: Int = 0): Future[Seq[FollowerDetailed]] = {
+  override def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]] = {
     db.run(FollowerTable.followers.filter(_.userId === id)
       .join(UserTable.users).on{case (p, u) => p.followerId === u.id}
+      .sortBy(_._1.followerId)
       .drop(start)
-      .take(2)
+      .take(n)
       .result
     ).map { result =>
       result.map { case (p, u) =>
@@ -70,4 +75,16 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     }
   }
 
+  override def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]] = {
+    db.run(FollowerTable.followers.filter(_.followerId === id)
+      .sortBy(_.userId)
+      .drop(start)
+      .take(n)
+      .result
+    ).map(_.map(_.followerId))
+  }
+
+  override def insertPostIds(posts: Seq[Feed]): Future[Boolean] = {
+    db.run((FeedTable.feeds ++= posts).transactionally).map(_.isDefined)
+  }
 }

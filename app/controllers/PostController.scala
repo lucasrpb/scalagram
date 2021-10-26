@@ -2,13 +2,14 @@ package controllers
 
 import actions.LoginAction
 import app.{Cache, Constants}
-import models.{Post, SessionInfo}
+import models.{Feed, FeedJob, Post, SessionInfo}
 import models.Post._
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc._
-import repositories.PostRepository
+import repositories.{FeedRepository, PostRepository}
+import services.FeedService
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
@@ -21,9 +22,11 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 @Singleton
 class PostController @Inject()(val controllerComponents: ControllerComponents,
-                               val repo: PostRepository,
+                               val postRepo: PostRepository,
+                               val feedRepo: FeedRepository,
                                val loginAction: LoginAction,
                                val cache: Cache,
+                               val feedService: FeedService,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
 
   /*def insert() = loginAction.async { implicit request: Request[AnyContent] =>
@@ -76,14 +79,37 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
 
     if(Files.exists(path)){
-      return repo.insert(id, data).map {
-        case false => InternalServerError(Json.obj(
+      return postRepo.insert(id, data).flatMap {
+        case false => Future.successful(InternalServerError(Json.obj(
           "error" -> JsString("Some error occurred!")
-        ))
+        )))
 
-        case true => Ok(Json.obj(
-          "status" -> JsString("Post inserted successfully!")
-        ))
+        case true => feedRepo.getFollowerIds(id, 0, 2).flatMap { followers =>
+
+          if(followers.isEmpty){
+
+            Future.successful(Ok(Json.obj(
+              "status" -> JsString("Post inserted successfully!")
+            )))
+
+          } else {
+
+            feedService.send(Json.toBytes(Json.toJson(
+              FeedJob(
+                data.id,
+                data.userId,
+                data.postedAt,
+                followers :+ data.userId
+              )
+            ))).map { m =>
+              Ok(Json.obj(
+                "status" -> JsString("Post inserted successfully 2!")
+              ))
+            }
+
+          }
+
+        }
       }
     }
 
@@ -97,7 +123,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   }
 
   def getPostsByUserId(id: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
-    repo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.arr(posts)))
+    postRepo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.arr(posts)))
   }
 
 }

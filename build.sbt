@@ -22,7 +22,7 @@ libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.7"
 libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.7"
 libraryDependencies += "com.yugabyte" % "jedis" % "2.9.0-yb-16"
 
-/*libraryDependencies ++= Seq(
+libraryDependencies ++= Seq(
 
   "org.apache.pulsar" % "pulsar-client" % "2.8.0",
   "org.apache.pulsar" % "pulsar-client-admin" % "2.8.0",
@@ -34,7 +34,11 @@ libraryDependencies += "com.yugabyte" % "jedis" % "2.9.0-yb-16"
 
   // if you want to use play-json for schemas
   "com.sksamuel.pulsar4s" %% "pulsar4s-play-json" % pulsar4sVersion
-)*/
+)
+
+dependencyOverrides ++= Seq(
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.1"
+)
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.scalagram.controllers._"

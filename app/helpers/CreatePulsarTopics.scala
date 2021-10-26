@@ -1,6 +1,6 @@
 package helpers
 
-/*import org.apache.pulsar.client.admin.PulsarAdmin
+import org.apache.pulsar.client.admin.PulsarAdmin
 import org.apache.pulsar.common.policies.data.RetentionPolicies
 import org.slf4j.LoggerFactory
 
@@ -40,4 +40,4 @@ object CreatePulsarTopics {
     }
   }
 
-}*/
+}

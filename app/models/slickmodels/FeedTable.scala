@@ -13,10 +13,11 @@ class FeedTable(tag: Tag) extends Table[Feed](tag, "feeds") {
   def postedAt = column[Long]("posted_at")
 
   def pk = primaryKey("feed_pk", (userId, followerId, postId))
-  def userIdFK = foreignKey("feeds_user_id_fk", userId, UserTable.users)(_.id)
+
+  /*def userIdFK = foreignKey("feeds_user_id_fk", userId, UserTable.users)(_.id)
   def followerIdFK = foreignKey("feeds_follower_id_fk", followerId, UserTable.users)(_.id)
   def postIdFK = foreignKey("feeds_post_id_fk", postId, PostTable.posts)(_.id)
-
+*/
   def * = (userId, followerId, postId, postedAt) <> ((Feed.apply _).tupled, Feed.unapply)
 }
 

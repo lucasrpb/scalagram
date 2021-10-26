@@ -92,6 +92,8 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
     val login = request.headers.get("login").get
     val password = request.headers.get("password").get
 
+    logger.info(s"login ${login} password: ${password}\n")
+
     repo.getTokenByLogin(login, password).map {
       case None => Unauthorized("Login and/or password are wrong!")
       case Some(info) =>

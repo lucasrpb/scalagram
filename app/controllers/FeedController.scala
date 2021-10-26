@@ -7,6 +7,7 @@ import play.api.libs.json.{JsObject, JsString, Json, Reads}
 import play.api.mvc._
 import repositories.FeedRepository
 import Follower._
+import services.FeedJobHandler
 
 import java.util.UUID
 import javax.inject._
@@ -20,6 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FeedController @Inject()(val controllerComponents: ControllerComponents,
                                val repo: FeedRepository,
                                val loginAction: LoginAction,
+                               val feedJobHandler: FeedJobHandler,
                                val cache: Cache,
                                implicit val ec: ExecutionContext) extends BaseController {
 
@@ -39,11 +41,11 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
     }
   }
 
-  def getFollowers(start: Int) = loginAction.async { implicit request: Request[AnyContent] =>
+  def getFollowers(start: Int, n: Int) = loginAction.async { implicit request: Request[AnyContent] =>
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
-    repo.getFollowers(id, start).map(followers => Ok(Json.arr(followers)))
+    repo.getFollowers(id, start, n).map(followers => Ok(Json.arr(followers)))
   }
 
 }

@@ -37,6 +37,9 @@
   <logger name="repositories" level="INFO" />
   <logger name="controllers" level="INFO" />
   <logger name="actions" level="INFO" />
+  <logger name="services" level="INFO" />
+  <logger name="app" level="INFO" />
+  <logger name="modules" level="INFO" />
 
   <root level="WARN">
     <appender-ref ref="ASYNCFILE" />

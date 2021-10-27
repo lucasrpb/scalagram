@@ -5,7 +5,7 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.13.6"
+scalaVersion := "2.12.13"
 lazy val pulsar4sVersion = "2.7.3"
 
 libraryDependencies += guice
@@ -33,7 +33,9 @@ libraryDependencies ++= Seq(
   "com.sksamuel.pulsar4s" %% "pulsar4s-akka-streams" % pulsar4sVersion,
 
   // if you want to use play-json for schemas
-  "com.sksamuel.pulsar4s" %% "pulsar4s-play-json" % pulsar4sVersion
+  "com.sksamuel.pulsar4s" %% "pulsar4s-play-json" % pulsar4sVersion,
+
+ // "io.swagger" %% "swagger-play2" % "1.7.1"
 )
 
 dependencyOverrides ++= Seq(

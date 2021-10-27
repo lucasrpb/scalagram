@@ -1,13 +1,10 @@
 package helpers
 
-import com.typesafe.config.Config
 import config.PulsarConfig
 import org.apache.pulsar.client.admin.PulsarAdmin
 import org.apache.pulsar.common.policies.data.RetentionPolicies
 import org.slf4j.LoggerFactory
-import play.api.{Configuration, Environment}
-
-import javax.inject.Inject
+import play.api.Environment
 
 object CreatePulsarTopics {
 

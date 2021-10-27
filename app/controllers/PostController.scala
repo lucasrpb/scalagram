@@ -6,7 +6,7 @@ import models.{Feed, FeedJob, Post, SessionInfo}
 import models.Post._
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsArray, JsObject, JsString, Json}
 import play.api.mvc._
 import repositories.{FeedRepository, PostRepository}
 import services.FeedService
@@ -98,7 +98,8 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   }
 
   def getPostsByUserId(id: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
-    postRepo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.toJson(posts)))
+    val tags = request.body.asJson.map(_.as[List[String]]).getOrElse(List.empty[String])
+    postRepo.getPostsByUserId(UUID.fromString(id), start, n, tags).map(posts => Ok(Json.toJson(posts)))
   }
 
 }

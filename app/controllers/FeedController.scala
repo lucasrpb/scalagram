@@ -41,6 +41,20 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
     }
   }
 
+  def unfollow(followerId: String) = loginAction.async { implicit request: Request[AnyContent] =>
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    repo.unfollow(id, UUID.fromString(followerId)).map {
+      case false => InternalServerError(Json.obj(
+        "error" -> JsString("Something bad happened!")
+      ))
+      case _ => Ok(Json.obj(
+        "status" -> JsString("You successfully unfollowed this user!")
+      ))
+    }
+  }
+
   def getFollowers(start: Int, n: Int) = loginAction.async { implicit request: Request[AnyContent] =>
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
@@ -52,8 +66,9 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
-    repo.getFeedPosts(id, start, n).map(posts => Ok(Json.toJson(posts)))
-  }
+    val tags = request.body.asJson.map(_.as[List[String]]).getOrElse(List.empty[String]).map(_.toLowerCase.trim)
 
+    repo.getFeedPosts(id, start, n, tags).map(posts => Ok(Json.toJson(posts)))
+  }
 
 }

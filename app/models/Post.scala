@@ -8,8 +8,10 @@ case class Post(id: UUID = UUID.randomUUID,
                 userId: UUID,
                 imgType: String,
                 description: Option[String] = Some(""),
-                tags: List[String] = List.empty[String],
-                postedAt: Long = System.currentTimeMillis())
+                var tags: List[String] = List.empty[String],
+                postedAt: Long = System.currentTimeMillis()){
+  tags = tags.map(_.toLowerCase.trim)
+}
 
 object Post {
   implicit val postFormat = Json.using[Json.WithDefaultValues].format[Post]

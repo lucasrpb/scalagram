@@ -41,6 +41,9 @@ GET     /profiles/:id  controllers.ProfileController.getProfile(id)
 +nocsrf
 POST   /feed/follow controllers.FeedController.follow()
 
++nocsrf
+POST   /feed/unfollow/:id controllers.FeedController.unfollow(id)
+
 GET    /feed/follow/:start/:n controllers.FeedController.getFollowers(start: Int, n: Int)
 
 GET    /feed/posts/:start/:n controllers.FeedController.getFeed(start: Int, n: Int)

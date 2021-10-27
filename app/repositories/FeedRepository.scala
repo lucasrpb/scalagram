@@ -4,7 +4,7 @@ import com.google.inject.ImplementedBy
 import models.{Feed, Follower, FollowerDetailed, Post}
 import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
 import play.api.inject.ApplicationLifecycle
-import slick.jdbc.PostgresProfile.api._
+import repositories.MyPostgresProfile.api._
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -15,12 +15,13 @@ import scala.util.{Failure, Success}
 trait FeedRepository {
 
   def follow(id: UUID, data: Follower): Future[Boolean]
+  def unfollow(id: UUID, followerId: UUID): Future[Boolean]
   def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]]
   def getFollowerIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]]
 
   def insertPostIds(posts: Seq[Feed]): Future[Boolean]
 
-  def getFeedPosts(id: UUID, start: Int, n: Int): Future[Seq[Post]]
+  def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]]
 
 }
 
@@ -56,6 +57,10 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     }
 
     db.run(action)
+  }
+
+  override def unfollow(id: UUID, followerId: UUID): Future[Boolean] = {
+    db.run(FollowerTable.followers.filter(f => f.userId === id && f.followerId === followerId).delete).map(_ == 1)
   }
 
   override def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]] = {
@@ -97,7 +102,19 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run((FeedTable.feeds ++= posts).transactionally).map(_.isDefined)
   }
 
-  override def getFeedPosts(id: UUID, start: Int, n: Int): Future[Seq[Post]] = {
+  override def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]] = {
+
+    if(!tags.isEmpty){
+      return db.run(
+        FeedTable.feeds.filter(_.followerId === id)
+          .sortBy(_.postId)
+          .drop(start)
+          .take(n)
+          .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
+          .result
+      ).map(_.map(_._2))
+    }
+
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
         .sortBy(_.postId)

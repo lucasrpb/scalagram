@@ -4,6 +4,7 @@ import app.Constants
 import com.google.inject.ImplementedBy
 import models.slickmodels.{ProfileTable, UserTable}
 import models.{CodeInfo, TokenInfo, User, UserStatus, UserUpdate}
+import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import slick.dbio.DBIOAction
@@ -35,7 +36,8 @@ trait UserRepository {
 }
 
 @Singleton
-class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle) extends UserRepository {
+class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+  extends UserRepository with Logging {
   val db = Database.forConfig("postgres")
 
   lifecycle.addStopHook { () =>
@@ -50,7 +52,7 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   )
 
   val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => println(ok)
+    case Success(ok) => logger.info(s"setup result: ${ok}")
     case Failure(ex) => ex.printStackTrace()
   }
 

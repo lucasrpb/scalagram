@@ -3,6 +3,7 @@ package repositories
 import com.google.inject.ImplementedBy
 import models.{Feed, Follower, FollowerDetailed, Post}
 import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
+import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import repositories.MyPostgresProfile.api._
 
@@ -26,7 +27,8 @@ trait FeedRepository {
 }
 
 @Singleton
-class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle) extends FeedRepository {
+class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+  extends FeedRepository with Logging {
   val db = Database.forConfig("postgres")
 
   lifecycle.addStopHook { () =>
@@ -41,7 +43,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   )
 
   val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => println(ok)
+    case Success(ok) => logger.info(s"setup result: ${ok}")
     case Failure(ex) => ex.printStackTrace()
   }
 
@@ -108,9 +110,9 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
       return db.run(
         FeedTable.feeds.filter(_.followerId === id)
           .sortBy(_.postId)
+          .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .drop(start)
           .take(n)
-          .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .result
       ).map(_.map(_._2))
     }
@@ -118,9 +120,9 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
         .sortBy(_.postId)
+        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)
-        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .result
     ).map(_.map(_._2))
   }

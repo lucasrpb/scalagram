@@ -3,6 +3,7 @@ package repositories
 import com.google.inject.ImplementedBy
 import models.Post
 import models.slickmodels.{FollowerTable, PostTable, UserTable}
+import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import repositories.MyPostgresProfile.api._
 
@@ -18,7 +19,8 @@ trait PostRepository {
 }
 
 @Singleton
-class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle) extends PostRepository {
+class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+  extends PostRepository with Logging {
   val db = Database.forConfig("postgres")
 
   lifecycle.addStopHook { () =>
@@ -31,7 +33,7 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
   )
 
   val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => println(ok)
+    case Success(ok) => logger.info(s"setup result: ${ok}")
     case Failure(ex) => ex.printStackTrace()
   }
 

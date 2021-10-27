@@ -51,13 +51,18 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
 
     val file = imgOpt.get
     val img = file.ref
-    val fileId = UUID.randomUUID()
+    val postId = UUID.randomUUID()
+    val ext = com.google.common.io.Files.getFileExtension(file.filename)
+
     val data = (Json.parse(dataOpt.get.head.getBytes()).as[JsObject] ++ Json.obj(
       "userId" -> JsString(session.id),
-      "id" -> JsString(fileId.toString)
+      "imgType" -> JsString(ext),
+      "id" -> JsString(postId.toString)
     )).as[Post]
 
-    val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${fileId.toString}.${com.google.common.io.Files.getFileExtension(file.filename)}"), replace = true)
+    val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${postId.toString}.${ext}"), replace = true)
+
+    logger.info(s"\nextension: ${ext}\n")
 
     if(Files.exists(path)){
       return postRepo.insert(id, data).flatMap {

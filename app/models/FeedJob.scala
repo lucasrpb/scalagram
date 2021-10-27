@@ -7,7 +7,7 @@ case class FeedJob(postId: UUID,
                    fromUserId: UUID,
                    postedAt: Long,
                    followers: Seq[UUID],
-                   start: Int = 0)
+                   lastId: Option[UUID])
 
 object FeedJob {
   implicit val feedTaskFormat = Json.using[Json.WithDefaultValues].format[FeedJob]

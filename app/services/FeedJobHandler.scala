@@ -41,11 +41,11 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
     enableBatching = Some(false), blockIfQueueFull = Some(false)))
 
-  /*lifecycle.addStopHook { () =>
+  lifecycle.addStopHook { () =>
     for {
       _ <- client.closeAsync
     } yield {}
-  }*/
+  }
 
   def send(data: Array[Byte]): Future[Boolean] = {
     val record = ProducerMessage[Array[Byte]](data)
@@ -123,7 +123,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
       )
     }).flatMap { ok =>
 
-      feedRepo.getFollowerIds(job.fromUserId, job.start, 2).flatMap { followers =>
+      feedRepo.getFollowerIds(job.fromUserId, job.lastId, 2).flatMap { followers =>
 
         logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
 
@@ -134,7 +134,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
               job.fromUserId,
               job.postedAt,
               followers,
-              job.start + followers.length
+              followers.lastOption
             )
           )))
         } else {

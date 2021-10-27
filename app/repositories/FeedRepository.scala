@@ -16,7 +16,7 @@ trait FeedRepository {
 
   def follow(id: UUID, data: Follower): Future[Boolean]
   def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]]
-  def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]]
+  def getFollowerIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]]
 
   def insertPostIds(posts: Seq[Feed]): Future[Boolean]
 
@@ -77,10 +77,17 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     }
   }
 
-  override def getFollowerIds(id: UUID, start: Int, n: Int): Future[Seq[UUID]] = {
-    db.run(FollowerTable.followers.filter(_.followerId === id)
+  override def getFollowerIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]] = {
+    if(lastId.isDefined) {
+      return db.run(FollowerTable.followers.filter(f => f.followerId === id && f.userId > lastId.get.asColumnOf[UUID])
+        .sortBy(_.userId)
+        .take(n)
+        .result
+      ).map(_.map(_.userId))
+    }
+
+    db.run(FollowerTable.followers.filter(f => f.followerId === id)
       .sortBy(_.userId)
-      .drop(start)
       .take(n)
       .result
     ).map(_.map(_.userId))

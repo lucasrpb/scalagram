@@ -84,30 +84,22 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
           "error" -> JsString("Some error occurred!")
         )))
 
-        case true => feedRepo.getFollowerIds(id, 0, 2).flatMap { followers =>
+        case true => feedRepo.getFollowerIds(id, None, 2).flatMap { followers =>
 
-          if(followers.isEmpty){
+          val all = (followers :+ data.userId).sortBy(_.toString)
 
-            Future.successful(Ok(Json.obj(
+          feedService.send(Json.toBytes(Json.toJson(
+            FeedJob(
+              data.id,
+              data.userId,
+              data.postedAt,
+              all,
+              all.lastOption
+            )
+          ))).map { m =>
+            Ok(Json.obj(
               "status" -> JsString("Post inserted successfully!")
-            )))
-
-          } else {
-
-            feedService.send(Json.toBytes(Json.toJson(
-              FeedJob(
-                data.id,
-                data.userId,
-                data.postedAt,
-                followers :+ data.userId,
-                followers.length
-              )
-            ))).map { m =>
-              Ok(Json.obj(
-                "status" -> JsString("Post inserted successfully 2!")
-              ))
-            }
-
+            ))
           }
 
         }
@@ -124,7 +116,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   }
 
   def getPostsByUserId(id: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
-    postRepo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.arr(posts)))
+    postRepo.getPostsByUserId(UUID.fromString(id), start, n).map(posts => Ok(Json.toJson(posts)))
   }
 
 }

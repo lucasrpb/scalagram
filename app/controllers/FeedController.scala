@@ -45,14 +45,14 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
-    repo.getFollowers(id, start, n).map(followers => Ok(Json.arr(followers)))
+    repo.getFollowers(id, start, n).map(followers => Ok(Json.toJson(followers)))
   }
 
   def getFeed(start: Int, n: Int) = loginAction.async { implicit request: Request[AnyContent] =>
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
-    repo.getFeedPosts(id, start, n).map(posts => Ok(Json.arr(posts)))
+    repo.getFeedPosts(id, start, n).map(posts => Ok(Json.toJson(posts)))
   }
 
 

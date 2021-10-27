@@ -1,7 +1,6 @@
 package models
 
 import play.api.libs.json.{Json, Reads, Writes}
-
 import java.util.UUID
 
 case class Follower(userId: UUID,

@@ -4,6 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import app.Constants
 import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, ProducerConfig, ProducerMessage, PulsarClient, PulsarClientConfig, Subscription, Topic}
 import com.sksamuel.pulsar4s.akka.streams.source
 import models.{Feed, FeedJob}
@@ -52,55 +53,6 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
     Source.single(record).run().map(_ => true)
   }
 
-  /*protected def listener(consumer: Consumer[Array[Byte]], msg: Message[Array[Byte]]): Unit = {
-    val job = Json.parse(msg.getData).as[FeedJob]
-
-    logger.info(s"${Console.GREEN_B}PROCESSING JOB: ${job}${Console.RESET}\n")
-
-    feedRepo.insertPostIds(job.followers.map { f =>
-      Feed(
-        job.fromUserId,
-        f,
-        job.postId,
-        job.postedAt
-      )
-    }).onComplete {
-      case Success(ok) =>
-
-        consumer.acknowledge(msg)
-
-        feedRepo.getFollowerIds(job.fromUserId, job.start, 2).flatMap { followers =>
-
-          logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
-
-          if(!followers.isEmpty){
-            send(Json.toBytes(Json.toJson(
-              FeedJob(
-                job.postId,
-                job.fromUserId,
-                job.postedAt,
-                followers,
-                job.start + followers.length
-              )
-            )))
-          } else {
-            Future.successful(true)
-          }
-
-        }
-
-      case Failure(ex) => consumer.negativeAcknowledge(msg)
-      /*case _ => consumer.acknowledge(msg)*/
-    }
-  }
-
-  protected val consumer = client.newConsumer()
-    .topic(TOPIC)
-    .subscriptionType(SubscriptionType.Shared)
-    .subscriptionName("feed-job-handler")
-    .messageListener(listener)
-    .subscribe()*/
-
   val consumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"feed-job-handler"),
     topics = Seq(Topic(TOPIC)),
     subscriptionType = Some(SubscriptionType.Exclusive),
@@ -123,7 +75,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
       )
     }).flatMap { ok =>
 
-      feedRepo.getFollowerIds(job.fromUserId, job.lastId, 2).flatMap { followers =>
+      feedRepo.getFollowerIds(job.fromUserId, job.lastId, Constants.MAX_FOLLOWERS_POLL).flatMap { followers =>
 
         logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
 

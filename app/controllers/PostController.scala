@@ -29,26 +29,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
                                val feedService: FeedService,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
 
-  /*def insert() = loginAction.async { implicit request: Request[AnyContent] =>
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val data = (request.body.asJson.get.as[JsObject] ++ Json.obj("userId" -> JsString(session.id))).as[Post]
-    val id = UUID.fromString(session.id)
-
-    logger.info(s"\npost: ${data}\n")
-
-    repo.insert(id, data).map {
-      case false => InternalServerError(Json.obj(
-        "error" -> JsString("Some error occurred!")
-      ))
-
-      case true => Ok(Json.obj(
-        "status" -> JsString("Post inserted successfully!")
-      ))
-    }
-  }*/
-
   // Use binary in postman if using body parser parse.temporaryFile...
-
   def processUpload(request: Request[MultipartFormData[TemporaryFile]]): Future[Result] = {
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
@@ -84,8 +65,9 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
           "error" -> JsString("Some error occurred!")
         )))
 
-        case true => feedRepo.getFollowerIds(id, None, 2).flatMap { followers =>
+        case true => feedRepo.getFollowerIds(id, None, Constants.MAX_FOLLOWERS_POLL).flatMap { followers =>
 
+          // User should be able to see its own posts...
           val all = (followers :+ data.userId).sortBy(_.toString)
 
           feedService.send(Json.toBytes(Json.toJson(

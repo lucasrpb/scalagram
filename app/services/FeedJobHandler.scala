@@ -7,9 +7,10 @@ import akka.stream.scaladsl.{Sink, Source}
 import app.Constants
 import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, ProducerConfig, ProducerMessage, PulsarClient, PulsarClientConfig, Subscription, Topic}
 import com.sksamuel.pulsar4s.akka.streams.{sink, source}
+import config.PulsarConfig
 import models.{Feed, FeedJob}
 import org.apache.pulsar.client.api.{MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.Json
 import repositories.FeedRepository
@@ -20,17 +21,16 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
                                lifecycle: ApplicationLifecycle,
-                               val feedRepo: FeedRepository
+                               val feedRepo: FeedRepository,
+                               playConfig: Configuration,
                               ) extends Logging {
+
+  val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
 
   logger.info(s"${Console.MAGENTA_B}FEED PROCESSOR INITIATED...${Console.RESET}")
 
-  val PULSAR_SERVICE_URL = "pulsar://localhost:6650"
-  val TOPIC = "public/scalagram/feed-jobs"
-
-  /*protected val client = PulsarClient.builder()
-    .serviceUrl(PULSAR_SERVICE_URL)
-    .build()*/
+  val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
+  val TOPIC = pulsarConfig.topic
 
   implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-job-handler")
   implicit val mat = Materializer(system)

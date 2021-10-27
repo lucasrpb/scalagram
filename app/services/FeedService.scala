@@ -1,7 +1,8 @@
 package services
 
+import config.PulsarConfig
 import org.apache.pulsar.client.api.{MessageId, PulsarClient}
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 
 import javax.inject.{Inject, Singleton}
@@ -9,12 +10,17 @@ import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class FeedService @Inject()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle) extends Logging {
+class FeedService @Inject()(implicit val ec: ExecutionContext,
+                            val lifecycle: ApplicationLifecycle,
+                            val playConfig: Configuration
+                           ) extends Logging {
+
+  val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
 
   logger.info(s"${Console.MAGENTA_B}FEED SERVICE INITIATED...${Console.RESET}")
 
-  val PULSAR_SERVICE_URL = "pulsar://localhost:6650"
-  val TOPIC = "public/scalagram/feed-jobs"
+  val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
+  val TOPIC = pulsarConfig.topic
 
   protected val client = PulsarClient.builder()
     .serviceUrl(PULSAR_SERVICE_URL)

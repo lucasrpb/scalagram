@@ -1,16 +1,18 @@
 package helpers
 
+import config.PulsarConfig
 import org.apache.pulsar.client.admin.PulsarAdmin
 import org.slf4j.LoggerFactory
+import play.api.Environment
 
 object DeletePulsarTopics {
-
-  val PULSAR_SERVICE_URL = "pulsar://localhost:6650"
-  val PULSAR_CLIENT_URL = "http://localhost:8080"
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
+
+    val playConfig = play.api.Configuration.load(Environment.simple())
+    val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
 
     // Pass auth-plugin class fully-qualified name if Pulsar-security enabled
     val authPluginClassName = "pulsar"
@@ -21,21 +23,13 @@ object DeletePulsarTopics {
     val tlsTrustCertsFilePath = null
     val admin = PulsarAdmin.builder()
       //authentication(authPluginClassName, authParams)
-      .serviceHttpUrl(PULSAR_CLIENT_URL)
+      .serviceHttpUrl(pulsarConfig.clientURL)
       .tlsTrustCertsFilePath(tlsTrustCertsFilePath)
       .allowTlsInsecureConnection(tlsAllowInsecureConnection).build()
 
-    //topics.createNonPartitionedTopic(s"persistent://public/default/log4")
-
-    //topics.deletePartitionedTopic(Config.Topics.LOG)
-    //admin.namespaces().createNamespace("public/darwindb")
-    //admin.namespaces().setRetention("public/darwindb", new RetentionPolicies(-1, -1))
-   // topics.createPartitionedTopic(Config.Topics.LOG, 1)
-   // topics.createNonPartitionedTopic(Config.Topics.LOG)
-
     try {
-      //admin.namespaces().deleteNamespace("public/scalagram")
-      admin.topics().delete("feed-jobs", true)
+      //admin.namespaces().deleteNamespace(pulsarConfig.namespace)
+      admin.topics().delete(pulsarConfig.topic, true)
     } catch {
       case t: Throwable =>
         t.printStackTrace()

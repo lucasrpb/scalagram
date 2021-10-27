@@ -3,10 +3,10 @@ package services
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import app.Constants
 import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, ProducerConfig, ProducerMessage, PulsarClient, PulsarClientConfig, Subscription, Topic}
-import com.sksamuel.pulsar4s.akka.streams.source
+import com.sksamuel.pulsar4s.akka.streams.{sink, source}
 import models.{Feed, FeedJob}
 import org.apache.pulsar.client.api.{MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
 import play.api.Logging
@@ -48,9 +48,9 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
     } yield {}
   }
 
-  def send(data: Array[Byte]): Future[Boolean] = {
+  def send(data: Array[Byte]): Unit = {
     val record = ProducerMessage[Array[Byte]](data)
-    Source.single(record).run().map(_ => true)
+    Source.single(record).to(sink(producer)).run()
   }
 
   val consumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"feed-job-handler"),
@@ -64,7 +64,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
   def handler(msg: ConsumerMessage[Array[Byte]]): Future[Boolean] = {
     val job = Json.parse(msg.value).as[FeedJob]
 
-    logger.info(s"${Console.GREEN_B}PROCESSING JOB: ${job}${Console.RESET}\n")
+    logger.info(s"${Console.GREEN_B}PROCESSING JOB: ${job.followers}${Console.RESET}\n")
 
     feedRepo.insertPostIds(job.followers.map { f =>
       Feed(
@@ -75,7 +75,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
       )
     }).flatMap { ok =>
 
-      feedRepo.getFollowerIds(job.fromUserId, job.lastId, Constants.MAX_FOLLOWERS_POLL).flatMap { followers =>
+      feedRepo.getFollowerIds(job.fromUserId, job.lastId, Constants.MAX_FOLLOWERS_POLL).map { followers =>
 
         logger.info(s"${Console.BLUE_B}more followers: ${followers}${Console.RESET}\n")
 
@@ -89,8 +89,11 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
               followers.lastOption
             )
           )))
+
+          true
+
         } else {
-          Future.successful(true)
+          false
         }
 
       }

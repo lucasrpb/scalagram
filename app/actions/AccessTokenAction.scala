@@ -42,9 +42,6 @@ class AccessTokenAction @Inject()(parser: BodyParsers.Default, val cache: Cache)
   }
 
   override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-    /*logger.info("Calling action")
-    block(request)*/
-
     if(!isValidToken(request)){
       Future.successful(Unauthorized("Invalid access token!"))
     } else {

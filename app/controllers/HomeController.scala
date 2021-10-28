@@ -91,7 +91,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
       )
     }
 
-    logger.info(s"${Console.GREEN_B}sessionId: ${opt}${Console.RESET}")
+    logger.info(s"${Console.GREEN_B}sessionId: ${Json.parse(opt.get).as[SessionInfo]}${Console.RESET}")
 
     Future.successful(Ok("you got it!"))
   }

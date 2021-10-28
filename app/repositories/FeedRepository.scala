@@ -109,7 +109,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     if(!tags.isEmpty){
       return db.run(
         FeedTable.feeds.filter(_.followerId === id)
-          .sortBy(_.postId)
+          .sortBy(_.postedAt.desc)
           .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .drop(start)
           .take(n)
@@ -119,7 +119,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
-        .sortBy(_.postId)
+        .sortBy(_.postedAt.desc)
         .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)

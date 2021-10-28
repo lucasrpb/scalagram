@@ -14,6 +14,8 @@ class LoginAction @Inject()(parser: BodyParsers.Default, val cache: Cache)(impli
   extends ActionBuilderImpl(parser) with Logging {
 
   protected def isValidSession[A](request: Request[A]): Boolean = {
+    if(request.session.isEmpty || request.session.data.isEmpty) return false
+
     val sessionId = request.session.data.get("sessionId")
 
     if(sessionId.isEmpty) return false

@@ -6,6 +6,11 @@
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index()
 
++nocsrf
+POST     /                          controllers.HomeController.login()
+
++nocsrf
+POST    /action                     controllers.HomeController.action()
 # USERS CONTROLLER
 
 +nocsrf

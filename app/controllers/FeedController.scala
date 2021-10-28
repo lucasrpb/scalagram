@@ -7,6 +7,7 @@ import play.api.libs.json.{JsObject, JsString, Json, Reads}
 import play.api.mvc._
 import repositories.FeedRepository
 import Follower._
+import play.api.Logging
 import services.FeedJobHandler
 
 import java.util.UUID
@@ -23,7 +24,7 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
                                val loginAction: LoginAction,
                                val feedJobHandler: FeedJobHandler,
                                val cache: Cache,
-                               implicit val ec: ExecutionContext) extends BaseController {
+                               implicit val ec: ExecutionContext) extends BaseController with Logging {
 
   def follow() = loginAction.async { implicit request: Request[AnyContent] =>
 

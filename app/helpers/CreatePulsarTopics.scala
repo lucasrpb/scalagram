@@ -31,7 +31,7 @@ object CreatePulsarTopics {
 
     try {
 
-      //admin.namespaces().createNamespace(pulsarConfig.namespace)
+      admin.namespaces().createNamespace(pulsarConfig.namespace)
       admin.namespaces().setRetention(pulsarConfig.namespace, new RetentionPolicies(-1, -1))
       admin.topics().createNonPartitionedTopic(pulsarConfig.topic)
 

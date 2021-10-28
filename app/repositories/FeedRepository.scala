@@ -106,14 +106,14 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   override def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[PostDetailed]] = {
 
-    logger.info(s"USER ID: ${id}")
+    logger.info(s"USER ID: ${id}, start: ${start} n: ${n}")
 
     if(!tags.isEmpty){
       return db.run(
         FeedTable.feeds.filter(_.followerId === id)
           .sortBy(_.postedAt.desc)
-          .drop(start)
           .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
+          .drop(start)
           .take(n)
           .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
           .result
@@ -133,9 +133,9 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
         .sortBy(_.postedAt.desc)
+        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)
-        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
         .result
     ).map(_.map { case ((f, p), u) =>

@@ -1,7 +1,7 @@
 package repositories
 
 import com.google.inject.ImplementedBy
-import models.{Feed, Follower, FollowerDetailed, Post}
+import models.{Feed, Follower, FollowerDetailed, Post, PostDetailed}
 import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
@@ -22,7 +22,7 @@ trait FeedRepository {
 
   def insertPostIds(posts: Seq[Feed]): Future[Boolean]
 
-  def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]]
+  def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[PostDetailed]]
 
 }
 
@@ -104,7 +104,9 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run((FeedTable.feeds ++= posts).transactionally).map(_.isDefined)
   }
 
-  override def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]] = {
+  override def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[PostDetailed]] = {
+
+    logger.info(s"USER ID: ${id}")
 
     if(!tags.isEmpty){
       return db.run(
@@ -113,8 +115,19 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
           .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .drop(start)
           .take(n)
+          .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
           .result
-      ).map(_.map(_._2))
+      ).map(_.map { case ((f, p), u) =>
+        PostDetailed(
+          p.id,
+          p.userId,
+          u._2,
+          p.imgType,
+          p.description,
+          p.tags,
+          p.postedAt
+        )
+      })
     }
 
     db.run(
@@ -123,7 +136,18 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
         .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)
+        .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
         .result
-    ).map(_.map(_._2))
+    ).map(_.map { case ((f, p), u) =>
+      PostDetailed(
+        p.id,
+        p.userId,
+        u._2,
+        p.imgType,
+        p.description,
+        p.tags,
+        p.postedAt
+      )
+    })
   }
 }

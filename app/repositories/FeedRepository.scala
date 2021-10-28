@@ -112,8 +112,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
       return db.run(
         FeedTable.feeds.filter(_.followerId === id)
           .sortBy(_.postedAt.desc)
-          .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .drop(start)
+          .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .take(n)
           .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
           .result
@@ -133,9 +133,9 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
         .sortBy(_.postedAt.desc)
-        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)
+        .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .join(UserTable.users).on{case ((f, p), u) => f.userId === u.id}
         .result
     ).map(_.map { case ((f, p), u) =>

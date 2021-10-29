@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:demo/login_page.dart';
+import 'package:scalagramApp/login_page.dart';
 import 'package:flutter/material.dart';
 
 class NavBar extends StatelessWidget {

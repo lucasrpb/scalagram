@@ -4,10 +4,8 @@ import models.slickmodels._
 import play.api.Logging
 import repositories.MyPostgresProfile.api._
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
 
 object CreateTables extends Logging {
 
@@ -22,7 +20,7 @@ object CreateTables extends Logging {
       FeedTable.feeds.schema.createIfNotExists,
       FollowerTable.followers.schema.createIfNotExists
     )
-
+    
     try{
       Await.result(db.run(actions.transactionally), Duration.Inf)
       logger.info(s"Tables created successfully!")

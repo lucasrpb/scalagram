@@ -1,4 +1,4 @@
-import 'package:demo/navbar.dart';
+import 'package:scalagramApp/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 

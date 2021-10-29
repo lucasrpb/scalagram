@@ -31,9 +31,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
 
     repo.insert(user).map {
       case None => InternalServerError("Something bad happened!")
-      case Some(code) => Ok(Json.obj(
-        "code" -> JsString(code)
-      ))
+      case Some(code) => Ok(Json.toJson(code))
     }
   }
 
@@ -55,7 +53,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
       }
 
       repo.confirm(code).map { ok =>
-        Results.PreconditionFailed(Json.obj(
+        Results.Ok(Json.obj(
           "status" -> JsString("User confirmed successfully!")
         ))
       }
@@ -64,8 +62,8 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
     for {
       opt <- repo.getCodeInfo(code)
       result <- opt match {
-        case Some(CodeInfo(_, lastUpdate, Some(status))) => confirm(status, lastUpdate)
-        case None => Future.successful(NotFound(s"Invalid confirmation code!"))
+        case Some(CodeInfo(id, _, lastUpdate, Some(status))) => confirm(status, lastUpdate)
+        case _ => Future.successful(NotFound(s"Invalid confirmation code!"))
       }
     } yield {
       result

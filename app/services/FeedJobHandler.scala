@@ -15,6 +15,7 @@ import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.Json
 import repositories.FeedRepository
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -53,7 +54,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
     Source.single(record).to(sink(producer)).run()
   }
 
-  val consumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"feed-job-handler"),
+  val consumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"feed-job-handler-${UUID.randomUUID.toString}"),
     topics = Seq(Topic(TOPIC)),
     subscriptionType = Some(SubscriptionType.Exclusive),
     subscriptionInitialPosition = Some(SubscriptionInitialPosition.Latest)),

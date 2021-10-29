@@ -6,7 +6,7 @@ import java.util.UUID
 
 case class Post(id: UUID = UUID.randomUUID,
                 userId: UUID,
-                imgType: String,
+                imgType: String = "",
                 description: Option[String] = Some(""),
                 var tags: List[String] = List.empty[String],
                 postedAt: Long = System.currentTimeMillis()){

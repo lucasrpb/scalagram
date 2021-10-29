@@ -38,7 +38,7 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
         "error" -> JsString("You already follow this user!")
       ))
       case _ => Ok(Json.obj(
-        "status" -> JsString("You succesfully followed this user!")
+        "status" -> JsString("You successfully followed this user!")
       ))
     }
   }

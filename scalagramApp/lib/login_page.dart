@@ -82,7 +82,7 @@ class LoginPageState extends State<LoginPageWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           TextFormField(
-            initialValue: "luanagpb",
+            initialValue: "user0",
             // The validator receives the text that the user has entered.
             validator: (value) {
               if (value == null || value.isEmpty) {

@@ -10,3 +10,6 @@ target
 /null
 /posts
 /public/pictures
+/scalagram-app/.dart_tool
+/scalagram-app/.idea
+/scalagram-app/build

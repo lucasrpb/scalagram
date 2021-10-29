@@ -53,6 +53,8 @@ GET    /feed/follow/:start/:n controllers.FeedController.getFollowers(start: Int
 
 GET    /feed/posts/:start/:n controllers.FeedController.getFeed(start: Int, n: Int)
 
+GET     /posts/stream/:id  controllers.FeedController.feedStream(id)
+
 # POST CONTROLLER
 #+nocsrf
 #POST   /posts   controllers.PostController.insert()

@@ -30,7 +30,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
   logger.info(s"${Console.MAGENTA_B}FEED PROCESSOR INITIATED...${Console.RESET}")
 
   val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
-  val TOPIC = pulsarConfig.topic
+  val TOPIC = pulsarConfig.jobsTopic
 
   implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-job-handler")
   implicit val mat = Materializer(system)
@@ -42,11 +42,11 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
     enableBatching = Some(false), blockIfQueueFull = Some(false)))
 
-  lifecycle.addStopHook { () =>
+  /*lifecycle.addStopHook { () =>
     for {
       _ <- client.closeAsync
     } yield {}
-  }
+  }*/
 
   def send(data: Array[Byte]): Unit = {
     val record = ProducerMessage[Array[Byte]](data)

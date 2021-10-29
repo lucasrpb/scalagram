@@ -29,7 +29,8 @@ object DeletePulsarTopics {
 
     try {
       //admin.namespaces().deleteNamespace(pulsarConfig.namespace)
-      admin.topics().delete(pulsarConfig.topic, true)
+      admin.topics().delete(pulsarConfig.jobsTopic, true)
+      admin.topics().delete(pulsarConfig.feedTopic, true)
     } catch {
       case t: Throwable =>
         t.printStackTrace()

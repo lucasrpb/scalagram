@@ -20,7 +20,7 @@ class FeedService @Inject()(implicit val ec: ExecutionContext,
   logger.info(s"${Console.MAGENTA_B}FEED SERVICE INITIATED...${Console.RESET}")
 
   val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
-  val TOPIC = pulsarConfig.topic
+  val TOPIC = pulsarConfig.jobsTopic
 
   protected val client = PulsarClient.builder()
     .serviceUrl(PULSAR_SERVICE_URL)

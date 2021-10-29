@@ -44,18 +44,6 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     Future.successful(db.close())
   }
 
-  val setup = DBIO.seq(
-    // Create the tables, including primary and foreign keys
-    UserTable.users.schema.createIfNotExists,
-    // Insert some suppliers
-    // UserTable.users += (UUID.randomUUID(), "lucasrpb", "lucasrpb@gmail.com")
-  )
-
-  val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => logger.info(s"setup result: ${ok}")
-    case Failure(ex) => ex.printStackTrace()
-  }
-
   override def insert(user: User): Future[Option[String]] = {
     val op = UserTable.users += (user.id, user.username, user.password, user.email, user.phone,
       user.code, user.token, user.createdAt, user.codeLastUpdate, user.tokenLastUpdate, user.status, user.refreshToken)

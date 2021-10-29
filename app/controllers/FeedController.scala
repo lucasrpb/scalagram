@@ -13,6 +13,7 @@ import services.FeedJobHandler
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import akka.stream.scaladsl._
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -70,6 +71,16 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
     val tags = request.body.asJson.map(_.as[List[String]]).getOrElse(List.empty[String]).map(_.toLowerCase.trim)
 
     repo.getFeedPosts(id, start, n, tags).map(posts => Ok(Json.toJson(posts)))
+  }
+
+  def feedStream(id: String) = WebSocket.accept[String, String] { request =>
+    // Just ignore the input
+    val in = Sink.ignore
+
+    // Send a single 'Hello!' message and close
+    val out = Source.single(s"Hello, ${id}!")
+
+    Flow.fromSinkAndSource(in, out)
   }
 
 }

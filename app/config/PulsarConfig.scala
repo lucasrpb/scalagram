@@ -8,7 +8,8 @@ import javax.inject.Singleton
 case class PulsarConfig(serviceURL: String,
                         clientURL: String,
                         namespace: String,
-                        topic: String
+                        jobsTopic: String,
+                        feedTopic: String
                        )
 
 @Singleton
@@ -20,8 +21,10 @@ object PulsarConfig {
         serviceURL = config.getString("serviceURL"),
         clientURL = config.getString("clientURL"),
         namespace = config.getString("namespace"),
-        topic = config.getString("topic")
+        jobsTopic = config.getString("jobs-topic"),
+        feedTopic = config.getString("feed-topic")
       )
     }
   }
+
 }

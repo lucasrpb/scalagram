@@ -27,16 +27,6 @@ class ProfileRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecy
     Future.successful(db.close())
   }
 
-  val setup = DBIO.seq(
-    // Create the tables, including primary and foreign keys
-    ProfileTable.profiles.schema.createIfNotExists
-  )
-
-  val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => logger.info(s"setup result: ${ok}")
-    case Failure(ex) => ex.printStackTrace()
-  }
-
   override def upsert(id: UUID, profile: Profile): Future[Boolean] = {
     val action = for {
       n <- ProfileTable.profiles.filter(_.userId === id).map(p => p.name -> p.bio).update(profile.name -> profile.bio)

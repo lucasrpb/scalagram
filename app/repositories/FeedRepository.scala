@@ -35,18 +35,6 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     Future.successful(db.close())
   }
 
-  val setup = DBIO.seq(
-    FeedTable.feeds.schema.createIfNotExists,
-
-    // Create the tables, including primary and foreign keys
-    FollowerTable.followers.schema.createIfNotExists
-  )
-
-  val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => logger.info(s"setup result: ${ok}")
-    case Failure(ex) => ex.printStackTrace()
-  }
-
   override def follow(id: UUID, data: Follower): Future[Boolean] = {
     val action = for {
       exists <- FollowerTable.followers.filter(u => u.userId === id && u.followerId ===data.followerId).exists.result

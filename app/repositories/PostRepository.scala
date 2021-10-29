@@ -27,16 +27,6 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     Future.successful(db.close())
   }
 
-  val setup = DBIO.seq(
-    // Create the tables, including primary and foreign keys
-    PostTable.posts.schema.createIfNotExists
-  )
-
-  val setupFuture = db.run(setup).onComplete {
-    case Success(ok) => logger.info(s"setup result: ${ok}")
-    case Failure(ex) => ex.printStackTrace()
-  }
-
   override def insert(id: UUID, post: Post): Future[Boolean] = {
     db.run(PostTable.posts += post).map(_ == 1)
   }

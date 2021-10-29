@@ -28,6 +28,9 @@ object DeletePulsarTopics {
       .allowTlsInsecureConnection(tlsAllowInsecureConnection).build()
 
     try {
+
+      val topics = admin.topics().getList(pulsarConfig.namespace)
+
       //admin.namespaces().deleteNamespace(pulsarConfig.namespace)
       admin.topics().delete(pulsarConfig.jobsTopic, true)
       admin.topics().delete(pulsarConfig.feedTopic, true)

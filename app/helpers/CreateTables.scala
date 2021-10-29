@@ -4,7 +4,7 @@ import models.slickmodels._
 import play.api.Logging
 import repositories.MyPostgresProfile.api._
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}

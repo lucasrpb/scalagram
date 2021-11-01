@@ -20,6 +20,7 @@ docker run -it -p 6650:6650 -p 8080:8080 --name pulsar --mount source=pulsardata
 
 *Configuration*
 
+Be aware that the play framework uses java 8 for compatibility issues!
 Before running the app, you must create PostgresSQL tables and Pulsar topics, test the system to create some fake data in the database and finally run the backend. Do it running the main object class as such: 
 
 ```` 

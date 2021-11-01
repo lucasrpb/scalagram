@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       //color: Colors.deepPurpleAccent,
       title: _title,
       home: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.amberAccent,
         appBar: AppBar(
          // backgroundColor: Colors.deepPurpleAccent,
           title: const Text(_title),

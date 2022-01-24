@@ -1,10 +1,6 @@
 package services
 
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import com.google.api.gax.core.GoogleCredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.{Acl, BlobId, BlobInfo, StorageOptions}
 import com.google.common.base.Charsets
@@ -12,23 +8,20 @@ import com.sksamuel.pulsar4s._
 import com.sksamuel.pulsar4s.akka.streams.{sink, source}
 import connections.PulsarConnection
 import models.ImageJob
-import org.apache.pulsar.client.api.{MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
+import org.apache.pulsar.client.api.{MessageId, SubscriptionInitialPosition, SubscriptionType}
 import org.imgscalr.Scalr
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.Json
 import repositories.FeedRepository
 
-import java.awt.{Graphics2D, Image, RenderingHints}
-import java.awt.image.BufferedImage
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.io.{File, FileInputStream}
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.imageio.ImageIO
 import javax.inject.{Inject, Singleton}
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import collection.JavaConverters._
 
 @Singleton
 class ImageService @Inject()(implicit val ec: ExecutionContext,

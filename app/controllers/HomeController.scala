@@ -84,17 +84,16 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
       )
     }
 
-    val opt = cache.get(sessionId.get)
-
-    if(opt.isEmpty){
-      return Future.successful(
+    cache.get(sessionId.get).flatMap {
+      case None => Future.successful(
         BadRequest("Session cache is null!")
       )
+      case Some(result) =>
+
+        logger.info(s"${Console.GREEN_B}sessionId: ${Json.parse(result).as[SessionInfo]}${Console.RESET}")
+
+        Future.successful(Ok("you got it!"))
     }
-
-    logger.info(s"${Console.GREEN_B}sessionId: ${Json.parse(opt.get).as[SessionInfo]}${Console.RESET}")
-
-    Future.successful(Ok("you got it!"))
   }
 
   def action() = Action.async { implicit request: Request[AnyContent] =>

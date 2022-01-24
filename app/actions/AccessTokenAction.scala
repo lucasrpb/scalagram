@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AccessTokenAction @Inject()(parser: BodyParsers.Default, val cache: Cache)(implicit ec: ExecutionContext)
   extends ActionBuilderImpl(parser) with Logging {
 
-  protected def isValidToken[A](request: Request[A]): Boolean = {
+  /*protected def isValidToken[A](request: Request[A]): Boolean = {
     val token = request.headers.get("Authorization").map(_.replace("Bearer ", ""))
 
     if(token.isEmpty) return false
@@ -47,5 +47,9 @@ class AccessTokenAction @Inject()(parser: BodyParsers.Default, val cache: Cache)
     } else {
       block(request)
     }
+  }*/
+
+  override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+    block(request)
   }
 }

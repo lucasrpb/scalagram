@@ -9,7 +9,7 @@ import repositories.ProfileRepository
 
 import java.util.UUID
 import javax.inject._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -24,13 +24,24 @@ class ProfileController @Inject()(val controllerComponents: ControllerComponents
                                  ) extends BaseController {
 
   def upsert() = loginAction.async { implicit request: Request[AnyContent] =>
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val data = (request.body.asJson.get.as[JsObject] ++ Json.obj("userId" -> JsString(session.id))).as[Profile]
-    val id = UUID.fromString(session.id)
 
-    repo.upsert(id, data).map(ok => Ok(Json.obj(
-      "ok" -> JsBoolean(ok)
-    )))
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
+
+      case Some(bytes) =>
+
+        val session = Json.parse(bytes).as[SessionInfo]
+
+        val data = (request.body.asJson.get.as[JsObject] ++ Json.obj("userId" -> JsString(session.id))).as[Profile]
+        val id = UUID.fromString(session.id)
+
+        repo.upsert(id, data).map(ok => Ok(Json.obj(
+          "ok" -> JsBoolean(ok)
+        )))
+
+    }
   }
 
   def getProfile(id: String) = Action.async { implicit request: Request[AnyContent] =>

@@ -13,35 +13,44 @@ import scala.concurrent.{ExecutionContext, Future}
 class LoginAction @Inject()(parser: BodyParsers.Default, val cache: Cache)(implicit ec: ExecutionContext)
   extends ActionBuilderImpl(parser) with Logging {
 
-  protected def isValidSession[A](request: Request[A]): Boolean = {
-    if(request.session.isEmpty || request.session.data.isEmpty) return false
+  protected def isValidSession[A](request: Request[A]): Future[Boolean] = {
+
+    if(request.session.isEmpty || request.session.data.isEmpty) return Future.successful(false)
 
     val sessionId = request.session.data.get("sessionId")
 
-    if(sessionId.isEmpty) return false
+    if(sessionId.isEmpty) return Future.successful(false)
 
-    val opt = cache.get(sessionId.get)
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(false)
+      case Some(bytes) => cache.get(sessionId.get).flatMap {
+        case None => Future.successful(false)
+        case Some(bytes) =>
 
-    if(opt.isEmpty) return false
+          val info = Json.parse(bytes).as[SessionInfo]
 
-    val info = Json.parse(opt.get).as[SessionInfo]
+          logger.debug(s"session info: ${info}")
 
-    val userIdSessionId = cache.get(info.id)
+          cache.get(info.id).map {
+            case None => false
+            case Some(bytes) =>
 
-    if(userIdSessionId.isEmpty || new String(userIdSessionId.get).compareTo(sessionId.get) != 0) return false
+              val userIdSessionId = new String(bytes)
 
-    val now = System.currentTimeMillis()
+              !userIdSessionId.isEmpty && info.expiresAt > System.currentTimeMillis()
+          }
 
-    info.expiresAt > now
+      }
+    }
   }
 
   override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-    if(!isValidSession(request)){
-      Future.successful(Unauthorized(Json.obj(
+    isValidSession(request).flatMap {
+      case false => Future.successful(Unauthorized(Json.obj(
         "error" -> JsString("You must be logged to execute this action!")
       )))
-    } else {
-      block(request)
+
+      case true => block(request)
     }
   }
 }

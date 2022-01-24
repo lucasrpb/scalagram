@@ -28,8 +28,6 @@ POST    /users/login    controllers.UserController.login()
 +nocsrf
 POST    /users/logout   controllers.UserController.logout()
 
-GET     /users/show     controllers.UserController.show()
-
 +nocsrf
 PUT     /users/token    controllers.UserController.generateNewToken()
 

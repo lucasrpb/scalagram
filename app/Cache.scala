@@ -1,17 +1,21 @@
 package app
 
+import com.google.common.base.Charsets
 import com.google.inject.ImplementedBy
+import com.lambdaworks.redis.RedisClient
+import com.lambdaworks.redis.codec.ByteArrayCodec
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.compat.java8.FutureConverters._
 
 @ImplementedBy(classOf[RedisCache])
 trait Cache {
-  def put(key: String, value: Array[Byte]): Boolean
-  def get(key: String): Option[Array[Byte]]
+  def put(key: String, value: Array[Byte]): Future[Boolean]
+  def get(key: String): Future[Option[Array[Byte]]]
 }
 
 @Singleton
@@ -20,39 +24,21 @@ class RedisCache @Inject() (implicit val lifecycle: ApplicationLifecycle,
 
   logger.info(s"instance: ${this.hashCode()}")
 
-  val jedisConfig = new JedisPoolConfig()
-  jedisConfig.setMaxIdle(0)
+  val redisClient = RedisClient.create("redis://bxk2u26SKdBWto41e3qlRBoPeOe3ApfK@redis-10214.c1.us-east1-2.gce.cloud.redislabs.com:10214")
+  val connection = redisClient.connect(new ByteArrayCodec()).async()
 
-  protected val pool = new JedisPool(jedisConfig, "127.0.0.1")
+  override def put(key: String, value: Array[Byte]): Future[Boolean] = {
+    connection.set(key.getBytes(Charsets.UTF_8), value).toScala.map(_ != null)
+  }
+
+  override def get(key: String): Future[Option[Array[Byte]]] = {
+    connection.get(key.getBytes(Charsets.UTF_8)).toScala.map(bytes => if(bytes == null) None else Some(bytes))
+  }
 
   lifecycle.addStopHook { () =>
-    val client = pool.getResource
-
-    Future.successful {
-      if(client.isConnected){
-        pool.close()
-      }
-    }
+    for {
+       _ <- connection.flushall().toScala
+       _ <- Future.successful(connection.close())
+    } yield {}
   }
-
-  override def put(key: String, value: Array[Byte]): Boolean = {
-    val client = pool.getResource
-    client.set(key.getBytes(), value)
-    client.close()
-    true
-  }
-
-  override def get(key: String): Option[Array[Byte]] = {
-    val client = pool.getResource
-
-    val response = client.get(key.getBytes())
-
-    client.close()
-
-    response match {
-      case null => None
-      case data => Some(data)
-    }
-  }
-
 }

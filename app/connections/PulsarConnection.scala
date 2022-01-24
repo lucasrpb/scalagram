@@ -33,8 +33,8 @@ class PulsarConnection @Inject() (val playConfig: Configuration, val lifecycle: 
 
   val client = PulsarClient(config)
 
-  lifecycle.addStopHook { () =>
+  /*lifecycle.addStopHook { () =>
     Future.successful(client.close())
-  }
+  }*/
 
 }

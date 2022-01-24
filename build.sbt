@@ -37,8 +37,9 @@ libraryDependencies ++= Seq(
 
   "com.google.cloud" % "google-cloud-storage" % "2.3.0",
 
-  "org.imgscalr" % "imgscalr-lib" % "4.2"
+  "org.imgscalr" % "imgscalr-lib" % "4.2",
 
+  "biz.paluch.redis" % "lettuce" % "4.5.0.Final"
  // "io.swagger" %% "swagger-play2" % "1.7.1"
 )
 

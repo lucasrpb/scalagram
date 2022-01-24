@@ -21,7 +21,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class UserController @Inject()(val controllerComponents: ControllerComponents,
                                val repo: UserRepository,
                                val cache: Cache,
-                               val tokenAction: AccessTokenAction,
                                val loginAction: LoginAction,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
 
@@ -150,23 +149,22 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
   }
 
   def update() = loginAction.async { implicit request: Request[AnyContent] =>
-    val data = request.body.asJson.get.as[UserUpdate]
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val id = UUID.fromString(session.id)
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
 
-    repo.update(id, data).map(ok => Ok(Json.obj(
-      "ok" -> JsBoolean(ok)
-    )))
-  }
+      case Some(bytes) =>
 
-  def show() = loginAction { implicit request: Request[AnyContent] =>
-    val id = request.session.data.get("sessionId").get
+        val session = Json.parse(bytes).as[SessionInfo]
 
-    cache.get(id) match {
-      case None => InternalServerError(Json.obj(
-        "error" -> JsString("Something went wrong!")
-      ))
-      case Some(info) => Ok(Json.parse(info))
+        val data = request.body.asJson.get.as[UserUpdate]
+        val id = UUID.fromString(session.id)
+
+        repo.update(id, data).map(ok => Ok(Json.obj(
+          "ok" -> JsBoolean(ok)
+        )))
+
     }
   }
 

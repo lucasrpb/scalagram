@@ -65,9 +65,9 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     mapAsync(1)(handler)
     .run()
 
-  // Use binary in postman if using body parser parse.temporaryFile...
-  def processUpload(request: Request[MultipartFormData[TemporaryFile]]): Future[Result] = {
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+  def processUpload(request: Request[MultipartFormData[TemporaryFile]], bytes: Array[Byte]): Future[Result] = {
+
+    val session = Json.parse(bytes).as[SessionInfo]
     val id = UUID.fromString(session.id)
 
     val imgOpt = request.body.file("img")
@@ -145,6 +145,16 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     )))
   }
 
+  // Use binary in postman if using body parser parse.temporaryFile...
+  def processUpload(request: Request[MultipartFormData[TemporaryFile]]): Future[Result] = {
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
+      case Some(bytes) => processUpload(request, bytes)
+    }
+  }
+
   def upload() = loginAction.async(parse.multipartFormData) { implicit request =>
     processUpload(request)
   }
@@ -155,34 +165,63 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   }
 
   def updatePost() = loginAction.async { implicit request: Request[AnyContent] =>
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val id = UUID.fromString(session.id)
 
-    val up = request.body.asJson.get.as[UpdatePost]
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
+      case Some(bytes) =>
 
-    postRepo.updatePost(id, up).map(ok => Ok(Json.toJson(ok)))
+        val session = Json.parse(bytes).as[SessionInfo]
+
+        val id = UUID.fromString(session.id)
+
+        val up = request.body.asJson.get.as[UpdatePost]
+
+        postRepo.updatePost(id, up).map(ok => Ok(Json.toJson(ok)))
+
+    }
   }
 
   def comment(postId: String) = loginAction.async { implicit request: Request[AnyContent] =>
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val id = UUID.fromString(session.id)
 
-    val body = (request.body.asJson.get \ "body").as[JsString].value
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
+      case Some(bytes) =>
 
-    postRepo.insertComment(Comment(
-      UUID.randomUUID,
-      UUID.fromString(postId),
-      id,
-      body
-    )).map(ok => Ok(Json.toJson(ok)))
+        val session = Json.parse(bytes).as[SessionInfo]
+        val id = UUID.fromString(session.id)
+
+        val body = (request.body.asJson.get \ "body").as[JsString].value
+
+        postRepo.insertComment(Comment(
+          UUID.randomUUID,
+          UUID.fromString(postId),
+          id,
+          body
+        )).map(ok => Ok(Json.toJson(ok)))
+
+    }
   }
 
   def updateComment() = loginAction.async { implicit request: Request[AnyContent] =>
-    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
-    val id = UUID.fromString(session.id)
 
-    val uc = request.body.asJson.get.as[UpdateComment]
-    postRepo.updateComment(id, uc).map(ok => Ok(Json.toJson(ok)))
+    cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+      case None => Future.successful(InternalServerError(Json.obj(
+        "error" -> JsString("Session not found!")
+      )).withNewSession)
+      case Some(bytes) =>
+
+        val session = Json.parse(bytes).as[SessionInfo]
+
+        val id = UUID.fromString(session.id)
+
+        val uc = request.body.asJson.get.as[UpdateComment]
+        postRepo.updateComment(id, uc).map(ok => Ok(Json.toJson(ok)))
+
+    }
   }
 
   def getComments(postId: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>

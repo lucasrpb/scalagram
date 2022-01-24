@@ -2,19 +2,25 @@ package controllers
 
 import actions.LoginAction
 import app.{Cache, Constants}
-import models.{Comment, Feed, FeedJob, Post, SessionInfo, UpdateComment, UpdatePost}
+import com.google.common.base.Charsets
+import com.sksamuel.pulsar4s.akka.streams.source
+import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, Subscription, Topic}
+import connections.PulsarConnection
+import models.{Comment, Feed, FeedJob, ImageJob, Post, SessionInfo, UpdateComment, UpdatePost}
 import models.Post._
+import org.apache.pulsar.client.api.{MessageId, SubscriptionInitialPosition, SubscriptionType}
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 import repositories.{FeedRepository, PostRepository}
-import services.FeedService
+import services.{FeedService, ImageService}
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.inject._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -27,7 +33,37 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
                                val loginAction: LoginAction,
                                val cache: Cache,
                                val feedService: FeedService,
+                               val imageService: ImageService,
+                               val pulsarConnection: PulsarConnection,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
+
+  import pulsarConnection._
+
+  val clientId = UUID.randomUUID.toString
+  val TOPIC = s"non-persistent://scalagram-app/scalagram/img-api-client"
+
+  val imgConsumerFn = () => client.consumer(ConsumerConfig(subscriptionName = Subscription(s"image-job-handler-${clientId}"),
+    topics = Seq(Topic(TOPIC)),
+    subscriptionType = Some(SubscriptionType.Exclusive),
+    subscriptionInitialPosition = Some(SubscriptionInitialPosition.Latest)),
+  )
+
+  val imgConsumer = source(imgConsumerFn, Some(MessageId.latest))
+
+  val promises = TrieMap.empty[String, Promise[Boolean]]
+
+  def handler(msg: ConsumerMessage[Array[Byte]]): Future[Boolean] = {
+
+    logger.debug(s"${Console.CYAN_B}IMG PROCESSING ENDED: ${msg}${Console.RESET}")
+
+    promises.remove(new String(msg.value, Charsets.UTF_8)).map(_.success(true))
+
+    Future.successful(true)
+  }
+
+  imgConsumer.
+    mapAsync(1)(handler)
+    .run()
 
   // Use binary in postman if using body parser parse.temporaryFile...
   def processUpload(request: Request[MultipartFormData[TemporaryFile]]): Future[Result] = {
@@ -60,12 +96,21 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
       "id" -> JsString(postId.toString)
     )).as[Post]
 
-    val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${postId.toString}.${ext}"), replace = true)
+    //val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${postId.toString}.${ext}"), replace = true)
 
     logger.info(s"\nextension: ${ext}\n")
 
-    if(Files.exists(path)){
-      return postRepo.insert(data).flatMap {
+    val ps = Promise[Boolean]()
+
+    promises += data.id.toString -> ps
+
+    if(Files.exists(img)){
+
+      val job = ImageJob(data.id, ext, img.path.toString, TOPIC)
+
+      imageService.send(Json.toBytes(Json.toJson(job)))
+
+      return ps.future.flatMap(_ => postRepo.insert(data)).flatMap {
         case false => Future.successful(InternalServerError(Json.obj(
           "error" -> JsString("Some error occurred!")
         )))
@@ -84,6 +129,8 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
               all.lastOption
             )
           )))
+
+          //img.delete()
 
           Future.successful(Ok(Json.obj(
             "status" -> JsString("Post inserted successfully!")

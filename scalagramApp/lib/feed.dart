@@ -194,7 +194,8 @@ class _FeedWidgetState extends State<FeedWidget> {
                 Container(
                   alignment: Alignment.center,
                   child: Image.network(
-                    "http://10.0.2.2:9000/assets/pictures/${post.id}.${post.imgType}",
+                    //"http://10.0.2.2:9000/assets/pictures/${post.id}.${post.imgType}",
+                    "https://storage.googleapis.com/scalagram_pictures/${post.id}.${post.imgType}",
                     height: 200,
                     //width: 200,
                     fit: BoxFit.fitWidth,

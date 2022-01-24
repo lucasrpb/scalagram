@@ -30,11 +30,6 @@ class FeedService @Inject()(implicit val ec: ExecutionContext,
   val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
   val TOPIC = pulsarConfig.jobsTopic
 
-  implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-service")
-  implicit val mat = Materializer(system)
-
-  implicit val schema: Schema[Array[Byte]] = Schema.BYTES
-
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
     enableBatching = Some(false), blockIfQueueFull = Some(false)))
 

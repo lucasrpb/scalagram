@@ -10,6 +10,7 @@ case class PulsarConfig(serviceURL: String,
                         namespace: String,
                         jobsTopic: String,
                         feedTopic: String,
+                        imageJobsTopic: String,
                         token: String
                        )
 
@@ -24,6 +25,7 @@ object PulsarConfig {
         namespace = config.getString("namespace"),
         jobsTopic = config.getString("jobs-topic"),
         feedTopic = config.getString("feed-topic"),
+        imageJobsTopic = config.getString("image-jobs-topic"),
         token = config.getString("token")
       )
     }

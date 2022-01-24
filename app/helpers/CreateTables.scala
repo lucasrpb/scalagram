@@ -28,10 +28,10 @@ object CreateTables extends Logging {
       FeedTable.feeds.schema.createIfNotExists,
       FollowerTable.followers.schema.createIfNotExists*/
 
-      CommentTable.comments.schema.createIfNotExists
+      PostTable.posts.schema.createIfNotExists
     )
 
-    try{
+    try {
       Await.result(db.run(actions.transactionally), Duration.Inf)
       logger.info(s"Tables created successfully!")
     } catch {

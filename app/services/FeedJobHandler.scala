@@ -33,11 +33,6 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
 
   logger.info(s"${Console.MAGENTA_B}FEED PROCESSOR INITIATED...${Console.RESET}")
 
-  implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-job-handler")
-  implicit val mat = Materializer(system)
-
-  implicit val schema: Schema[Array[Byte]] = Schema.BYTES
-
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
     enableBatching = Some(false), blockIfQueueFull = Some(false)))
 

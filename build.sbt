@@ -35,6 +35,10 @@ libraryDependencies ++= Seq(
   // if you want to use play-json for schemas
   "com.sksamuel.pulsar4s" %% "pulsar4s-play-json" % pulsar4sVersion,
 
+  "com.google.cloud" % "google-cloud-storage" % "2.3.0",
+
+  "org.imgscalr" % "imgscalr-lib" % "4.2"
+
  // "io.swagger" %% "swagger-play2" % "1.7.1"
 )
 

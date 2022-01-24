@@ -74,8 +74,8 @@ class ImageService @Inject()(implicit val ec: ExecutionContext,
     var img_width = originalImage.getWidth
     var img_height = originalImage.getHeight
 
-    val maxWidth = 200
-    val maxHeight = 200
+    val maxWidth = 400
+    val maxHeight = 400
 
     // Scale image to fit in a square but keeping aspect ratio
     if(img_width > maxWidth || img_height > maxHeight) {

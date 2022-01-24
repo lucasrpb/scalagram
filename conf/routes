@@ -55,6 +55,14 @@ GET    /feed/posts/:start/:n controllers.FeedController.getFeed(start: Int, n: I
 
 GET     /posts/stream/:id  controllers.FeedController.feedStream(id)
 
++nocsrf
+POST    /posts/comments/:id controllers.PostController.comment(id)
+
++nocsrf
+PUT     /posts/comments/:id controllers.PostController.updateComment(id)
+
+GET    /posts/comments/:id/:start/:n controllers.PostController.getComments(id: String, start: Int, n: Int)
+
 # POST CONTROLLER
 #+nocsrf
 #POST   /posts   controllers.PostController.insert()

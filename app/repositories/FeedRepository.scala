@@ -2,8 +2,8 @@ package repositories
 
 import com.google.inject.ImplementedBy
 import connections.PostgresConnection
-import models.{Feed, Follower, FollowerDetailed, Post, PostDetailed}
-import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
+import models.{Comment, CommentDetailed, Feed, Follower, FollowerDetailed, Post, PostDetailed}
+import models.slickmodels.{CommentTable, FeedTable, FollowerTable, PostTable, UserTable}
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import repositories.MyPostgresProfile.api._
@@ -24,7 +24,6 @@ trait FeedRepository {
   def insertPostIds(posts: Seq[Feed]): Future[Boolean]
 
   def getFeedPosts(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[PostDetailed]]
-
 }
 
 @Singleton
@@ -65,7 +64,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
         FollowerDetailed(
           p.userId,
           p.followerId,
-          u._2,
+          u.username,
           p.followedAt
         )
       }
@@ -109,7 +108,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
         PostDetailed(
           p.id,
           p.userId,
-          u._2,
+          u.username,
           p.imgType,
           p.description,
           p.tags,
@@ -130,7 +129,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
       PostDetailed(
         p.id,
         p.userId,
-        u._2,
+        u.username,
         p.imgType,
         p.description,
         p.tags,

@@ -2,11 +2,13 @@ package models.slickmodels
 
 //import slick.jdbc.PostgresProfile.api._
 //import com.github.tminglei.slickpg._
+import models.{Profile, User}
 import repositories.MyPostgresProfile.api._
+
 import java.util.UUID
 
 // Definition of the SUPPLIERS table
-class UserTable(tag: Tag) extends Table[(UUID, String, String, String, String, String, String, Long, Long, Long, Int, String)](tag, "users") {
+class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def id = column[UUID]("id", O.PrimaryKey) // This is the primary key column
   def username = column[String]("username", O.Unique)
   def password = column[String]("password")
@@ -20,7 +22,7 @@ class UserTable(tag: Tag) extends Table[(UUID, String, String, String, String, S
   def status = column[Int]("status")
   def refreshToken = column[String]("refresh_token", O.Unique)
   // Every table needs a * projection with the same type as the table's type parameter
-  def * = (id, username, password, email, phone, code, token, createdAt, codeLastUpdate, tokenLastUpdate, status, refreshToken)
+  def * = (id, username, password, email, phone, code, token, refreshToken, createdAt, tokenLastUpdate, codeLastUpdate, status) <> ((User.apply _).tupled, User.unapply)
 }
 
 object UserTable {

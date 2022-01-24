@@ -2,7 +2,7 @@ package controllers
 
 import actions.LoginAction
 import app.{Cache, Constants}
-import models.{Feed, FeedJob, Post, SessionInfo}
+import models.{Comment, Feed, FeedJob, Post, SessionInfo}
 import models.Post._
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
@@ -105,6 +105,29 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   def getPostsByUserId(id: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
     val tags = request.body.asJson.map(_.as[List[String]]).getOrElse(List.empty[String])
     postRepo.getPostsByUserId(UUID.fromString(id), start, n, tags).map(posts => Ok(Json.toJson(posts)))
+  }
+
+  def comment(postId: String) = loginAction.async { implicit request: Request[AnyContent] =>
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    val body = (request.body.asJson.get \ "body").as[JsString].value
+
+    postRepo.insertComment(Comment(
+      UUID.randomUUID,
+      UUID.fromString(postId),
+      id,
+      body
+    )).map(ok => Ok(Json.toJson(ok)))
+  }
+
+  def updateComment(commentId: String) = loginAction.async { implicit request: Request[AnyContent] =>
+    val body = (request.body.asJson.get \ "body").as[JsString].value
+    postRepo.updateComment(UUID.fromString(commentId), body).map(ok => Ok(Json.toJson(ok)))
+  }
+
+  def getComments(postId: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>
+    postRepo.getComments(UUID.fromString(postId), start, n).map(posts => Ok(Json.toJson(posts)))
   }
 
 }

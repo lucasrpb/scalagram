@@ -2,8 +2,8 @@ package repositories
 
 import com.google.inject.ImplementedBy
 import connections.PostgresConnection
-import models.Post
-import models.slickmodels.{FollowerTable, PostTable, UserTable}
+import models.slickmodels.{CommentTable, PostTable, UserTable}
+import models.{Comment, CommentDetailed, Post}
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import repositories.MyPostgresProfile.api._
@@ -11,12 +11,14 @@ import repositories.MyPostgresProfile.api._
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @ImplementedBy(classOf[PostRepositoryImpl])
 trait PostRepository {
   def insert(id: UUID, post: Post): Future[Boolean]
   def getPostsByUserId(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]]
+  def insertComment(comment: Comment): Future[Boolean]
+  def getComments(postId: UUID, start: Int, n: Int): Future[Seq[CommentDetailed]]
+  def updateComment(commentId: UUID, body: String): Future[Boolean]
 }
 
 @Singleton
@@ -48,4 +50,38 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
       .result
     )
   }
+
+  override def insertComment(comment: Comment): Future[Boolean] = {
+    db.run(CommentTable.comments += comment).map(_ == 1)
+  }
+
+
+
+  override def getComments(id: UUID, start: Int, n: Int): Future[Seq[CommentDetailed]] = {
+    db.run(CommentTable.comments.filter(p => p.postId === id)
+      .join(UserTable.users).on(_.userId === _.id)
+      .sortBy(_._1.postedAt.desc)
+      .drop(start)
+      .take(n)
+      .result
+    ).map { comments =>
+      comments.map { case (c, u) =>
+        CommentDetailed(
+          c.id,
+          c.userId,
+          u.username,
+          c.body,
+          c.postedAt,
+          c.lastUpdateAt
+        )
+      }
+    }
+  }
+
+  override def updateComment(commentId: UUID, body: String): Future[Boolean] = {
+    db.run(
+      CommentTable.comments.filter(_.id === commentId).map(_.body).update(body)
+    ).map(_ == 1)
+  }
+
 }

@@ -2,7 +2,7 @@ package controllers
 
 import actions.LoginAction
 import app.Cache
-import models.{Follower, SessionInfo}
+import models.{Comment, Follower, SessionInfo}
 import play.api.libs.json.{JsObject, JsString, Json, Reads}
 import play.api.mvc._
 import repositories.FeedRepository
@@ -82,5 +82,4 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
 
     Flow.fromSinkAndSource(in, out)
   }
-
 }

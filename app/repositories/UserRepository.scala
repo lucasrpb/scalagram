@@ -44,8 +44,7 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifec
   import postgresConnection._
 
   override def insert(user: User): Future[Option[CodeInfo]] = {
-    val op = UserTable.users += (user.id, user.username, user.password, user.email, user.phone,
-      user.code, user.token, user.createdAt, user.codeLastUpdate, user.tokenLastUpdate, user.status, user.refreshToken)
+    val op = UserTable.users += user
     db.run(op).map {
       case n if n == 1 => Some(CodeInfo(
         user.id,
@@ -84,7 +83,7 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifec
 
   override def getToken(token: String): Future[Option[TokenInfo]] = {
     val op = UserTable.users.filter(u => u.token === token).result
-    db.run(op).map(_.headOption.map(u => TokenInfo(u._7, u._12, u._2, u._1, u._10 + 3600L * 1000L)))
+    db.run(op).map(_.headOption.map(u => TokenInfo(u.token, u.refreshToken, u.username, u.id, u.tokenLastUpdate + 3600L * 1000L)))
   }
 
   override def getTokenByLogin(login: String, password: String): Future[Option[TokenInfo]] = {
@@ -96,10 +95,10 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifec
     val action = for {
      sel <- UserTable.users.filter(u => (u.username === login || u.email === login) &&
        u.status === UserStatus.ACTIVE && u.password === password).result
-     n <- if(!sel.isEmpty) UserTable.users.filter(_.id === sel.head._1.asColumnOf[UUID])
+     n <- if(!sel.isEmpty) UserTable.users.filter(_.id === sel.head.id.asColumnOf[UUID])
        .map(u => u.tokenLastUpdate -> u.token -> u.refreshToken)
        .update(now -> token -> refreshToken) else DBIO.successful(0)
-    } yield if(n == 1) Some(TokenInfo(token, refreshToken, login, sel.head._1, expiresAt)) else None
+    } yield if(n == 1) Some(TokenInfo(token, refreshToken, login, sel.head.id, expiresAt)) else None
 
     db.run(action)
   }
@@ -112,10 +111,10 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifec
 
     val action = (for {
       sel <- UserTable.users.filter(u => (u.refreshToken === refreshToken) && u.status === UserStatus.ACTIVE).result
-      n <- if(!sel.isEmpty) UserTable.users.filter(_.id === sel.head._1.asColumnOf[UUID])
+      n <- if(!sel.isEmpty) UserTable.users.filter(_.id === sel.head.id.asColumnOf[UUID])
         .map(u => u.tokenLastUpdate -> u.token -> u.refreshToken)
         .update(now -> token -> newRefreshToken) else DBIO.successful(0)
-    } yield if(n == 1) Some(TokenInfo(token, refreshToken, sel.head._2, sel.head._1, expiresAt)) else None)
+    } yield if(n == 1) Some(TokenInfo(token, refreshToken, sel.head.username, sel.head.id, expiresAt)) else None)
 
     db.run(action)
   }

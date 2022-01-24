@@ -13,10 +13,11 @@ class PostTable(tag: Tag) extends Table[Post](tag, "posts") {
   def description = column[Option[String]]("description", SqlType("text"))
   def tags = column[List[String]]("tags")
   def postedAt = column[Long]("postedAt")
+  def lastUpdateAt = column[Long]("lastUpdateAt")
 
   def userIdFK = foreignKey("posts_user_id_fk", userId, UserTable.users)(_.id)
 
-  def * = (id, userId, img, description, tags, postedAt) <> ((Post.apply _).tupled, Post.unapply)
+  def * = (id, userId, img, description, tags, postedAt, lastUpdateAt) <> ((Post.apply _).tupled, Post.unapply)
 }
 
 object PostTable {

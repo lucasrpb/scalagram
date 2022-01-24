@@ -59,7 +59,10 @@ GET     /posts/stream/:id  controllers.FeedController.feedStream(id)
 POST    /posts/comments/:id controllers.PostController.comment(id)
 
 +nocsrf
-PUT     /posts/comments/:id controllers.PostController.updateComment(id)
+PUT     /posts  controllers.PostController.updatePost()
+
++nocsrf
+PUT     /posts/comments controllers.PostController.updateComment()
 
 GET    /posts/comments/:id/:start/:n controllers.PostController.getComments(id: String, start: Int, n: Int)
 

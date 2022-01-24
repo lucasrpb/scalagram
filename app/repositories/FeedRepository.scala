@@ -112,7 +112,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
           p.imgType,
           p.description,
           p.tags,
-          p.postedAt
+          p.postedAt,
+          p.lastUpdateAt
         )
       })
     }
@@ -133,7 +134,8 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
         p.imgType,
         p.description,
         p.tags,
-        p.postedAt
+        p.postedAt,
+        p.lastUpdateAt
       )
     })
   }

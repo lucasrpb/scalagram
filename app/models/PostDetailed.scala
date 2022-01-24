@@ -9,7 +9,9 @@ case class PostDetailed(id: UUID = UUID.randomUUID,
                         imgType: String,
                         description: Option[String],
                         var tags: List[String],
-                        postedAt: Long)
+                        postedAt: Long,
+                        lastUpdateAt: Long
+                       )
 
 object PostDetailed {
   implicit val postDetailFormat = Json.using[Json.WithDefaultValues].format[PostDetailed]

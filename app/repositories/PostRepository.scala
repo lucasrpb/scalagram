@@ -3,7 +3,7 @@ package repositories
 import com.google.inject.ImplementedBy
 import connections.PostgresConnection
 import models.slickmodels.{CommentTable, PostTable, UserTable}
-import models.{Comment, CommentDetailed, Post}
+import models.{Comment, CommentDetailed, Post, UpdateComment, UpdatePost}
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import repositories.MyPostgresProfile.api._
@@ -14,11 +14,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[PostRepositoryImpl])
 trait PostRepository {
-  def insert(id: UUID, post: Post): Future[Boolean]
+  def insert(post: Post): Future[Boolean]
+  def updatePost(curUserId: UUID, up: UpdatePost): Future[Boolean]
   def getPostsByUserId(id: UUID, start: Int, n: Int, tags: List[String] = List.empty[String]): Future[Seq[Post]]
   def insertComment(comment: Comment): Future[Boolean]
   def getComments(postId: UUID, start: Int, n: Int): Future[Seq[CommentDetailed]]
-  def updateComment(commentId: UUID, body: String): Future[Boolean]
+  def updateComment(curUserId: UUID, uc: UpdateComment): Future[Boolean]
 }
 
 @Singleton
@@ -29,7 +30,7 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
 
   import postgresConnection._
 
-  override def insert(id: UUID, post: Post): Future[Boolean] = {
+  override def insert(post: Post): Future[Boolean] = {
     db.run(PostTable.posts += post).map(_ == 1)
   }
 
@@ -55,8 +56,6 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
     db.run(CommentTable.comments += comment).map(_ == 1)
   }
 
-
-
   override def getComments(id: UUID, start: Int, n: Int): Future[Seq[CommentDetailed]] = {
     db.run(CommentTable.comments.filter(p => p.postId === id)
       .join(UserTable.users).on(_.userId === _.id)
@@ -78,10 +77,16 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
     }
   }
 
-  override def updateComment(commentId: UUID, body: String): Future[Boolean] = {
+  override def updateComment(curUserId: UUID, uc: UpdateComment): Future[Boolean] = {
     db.run(
-      CommentTable.comments.filter(_.id === commentId).map(_.body).update(body)
+      CommentTable.comments.filter(c => c.id === uc.id && c.userId === curUserId).map(c => c.body -> c.lastUpdateAt).update(uc.body -> System.currentTimeMillis())
     ).map(_ == 1)
   }
 
+  override def updatePost(curUserId: UUID, up: UpdatePost): Future[Boolean] = {
+    db.run(
+      PostTable.posts.filter(p => p.id === up.id && p.userId === curUserId).map(p => p.description -> p.tags -> p.lastUpdateAt)
+        .update(Some(up.description) -> up.tags -> System.currentTimeMillis())
+    ).map(_ == 1)
+  }
 }

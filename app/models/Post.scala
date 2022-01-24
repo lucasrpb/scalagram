@@ -9,7 +9,9 @@ case class Post(id: UUID = UUID.randomUUID,
                 imgType: String = "",
                 description: Option[String] = Some(""),
                 var tags: List[String] = List.empty[String],
-                postedAt: Long = System.currentTimeMillis()){
+                postedAt: Long = System.currentTimeMillis(),
+                lastUpdateAt: Long = System.currentTimeMillis()
+               ){
   tags = tags.map(_.toLowerCase.trim)
 }
 

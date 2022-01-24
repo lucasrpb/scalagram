@@ -2,11 +2,11 @@ package controllers
 
 import actions.LoginAction
 import app.{Cache, Constants}
-import models.{Comment, Feed, FeedJob, Post, SessionInfo}
+import models.{Comment, Feed, FeedJob, Post, SessionInfo, UpdateComment, UpdatePost}
 import models.Post._
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.{JsArray, JsObject, JsString, Json}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 import repositories.{FeedRepository, PostRepository}
 import services.FeedService
@@ -65,7 +65,7 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     logger.info(s"\nextension: ${ext}\n")
 
     if(Files.exists(path)){
-      return postRepo.insert(id, data).flatMap {
+      return postRepo.insert(data).flatMap {
         case false => Future.successful(InternalServerError(Json.obj(
           "error" -> JsString("Some error occurred!")
         )))
@@ -107,6 +107,15 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     postRepo.getPostsByUserId(UUID.fromString(id), start, n, tags).map(posts => Ok(Json.toJson(posts)))
   }
 
+  def updatePost() = loginAction.async { implicit request: Request[AnyContent] =>
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    val up = request.body.asJson.get.as[UpdatePost]
+
+    postRepo.updatePost(id, up).map(ok => Ok(Json.toJson(ok)))
+  }
+
   def comment(postId: String) = loginAction.async { implicit request: Request[AnyContent] =>
     val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
     val id = UUID.fromString(session.id)
@@ -121,9 +130,12 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     )).map(ok => Ok(Json.toJson(ok)))
   }
 
-  def updateComment(commentId: String) = loginAction.async { implicit request: Request[AnyContent] =>
-    val body = (request.body.asJson.get \ "body").as[JsString].value
-    postRepo.updateComment(UUID.fromString(commentId), body).map(ok => Ok(Json.toJson(ok)))
+  def updateComment() = loginAction.async { implicit request: Request[AnyContent] =>
+    val session = Json.parse(cache.get(request.session.data.get("sessionId").get).get).as[SessionInfo]
+    val id = UUID.fromString(session.id)
+
+    val uc = request.body.asJson.get.as[UpdateComment]
+    postRepo.updateComment(id, uc).map(ok => Ok(Json.toJson(ok)))
   }
 
   def getComments(postId: String, start: Int, n: Int) = Action.async { implicit request: Request[AnyContent] =>

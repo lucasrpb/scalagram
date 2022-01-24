@@ -83,11 +83,11 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
               all,
               all.lastOption
             )
-          ))).map { m =>
-            Ok(Json.obj(
-              "status" -> JsString("Post inserted successfully!")
-            ))
-          }
+          )))
+
+          Future.successful(Ok(Json.obj(
+            "status" -> JsString("Post inserted successfully!")
+          )))
 
         }
       }

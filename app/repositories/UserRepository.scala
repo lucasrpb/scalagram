@@ -2,6 +2,7 @@ package repositories
 
 import app.Constants
 import com.google.inject.ImplementedBy
+import connections.PostgresConnection
 import models.slickmodels.{ProfileTable, UserTable}
 import models.{CodeInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.Logging
@@ -36,13 +37,11 @@ trait UserRepository {
 }
 
 @Singleton
-class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifecycle: ApplicationLifecycle,
+                                    val postgresConnection: PostgresConnection)
   extends UserRepository with Logging {
-  val db = Database.forConfig("postgres")
 
-  lifecycle.addStopHook { () =>
-    Future.successful(db.close())
-  }
+  import postgresConnection._
 
   override def insert(user: User): Future[Option[CodeInfo]] = {
     val op = UserTable.users += (user.id, user.username, user.password, user.email, user.phone,

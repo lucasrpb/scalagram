@@ -3,7 +3,9 @@ package helpers
 import config.PulsarConfig
 import models.slickmodels._
 import org.apache.pulsar.client.admin.PulsarAdmin
+import org.apache.pulsar.client.api.AuthenticationFactory
 import org.apache.pulsar.common.policies.data.RetentionPolicies
+import org.postgresql.ds.PGSimpleDataSource
 import play.api.{Environment, Logging}
 import repositories.MyPostgresProfile.api._
 
@@ -13,6 +15,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 import scala.collection.JavaConverters._
 import repositories.MyPostgresProfile.api._
+import slick.jdbc.JdbcBackend.Database
 
 object Setup extends Logging {
 
@@ -22,29 +25,27 @@ object Setup extends Logging {
 
     val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
 
-    // Pass auth-plugin class fully-qualified name if Pulsar-security enabled
-    val authPluginClassName = "pulsar"
-    // Pass auth-param if auth-plugin class requires it
-    val authParams = "param1=value1"
-    val useTls = false
-    val tlsAllowInsecureConnection = true
-    val tlsTrustCertsFilePath = null
     val admin = PulsarAdmin.builder()
-      //authentication(authPluginClassName, authParams)
+      .authentication(AuthenticationFactory.token(pulsarConfig.token))
       .serviceHttpUrl(pulsarConfig.clientURL)
-      .tlsTrustCertsFilePath(tlsTrustCertsFilePath)
-      .allowTlsInsecureConnection(tlsAllowInsecureConnection).build()
+      .build()
 
     val topics = admin.topics()
     val namespaces = admin.namespaces()
 
-    val db = Database.forConfig("postgres")
+    val ds = new PGSimpleDataSource()
+
+    ds.setURL("jdbc:postgresql://45fbc0f7-1c77-4a28-bd99-7e09e41ee965.gcp.ybdb.io:5433/postgres?ssl=true&sslmode=verify-full&sslrootcert=./root.crt")
+    ds.setUser("admin")
+    ds.setPassword("j4aQyOhEFLV9RvfPoh5l7eZ9607vsO")
+
+    val db = Database.forDataSource(ds, None)
 
     try {
 
-      val existingNamespaces = namespaces.getNamespaces("public").asScala
+      val existingNamespaces = namespaces.getNamespaces("scalagram-app").asScala
 
-      if(!existingNamespaces.contains("public/scalagram")){
+      if(!existingNamespaces.contains(pulsarConfig.namespace)){
         namespaces.createNamespace(pulsarConfig.namespace)
         namespaces.setRetention(pulsarConfig.namespace, new RetentionPolicies(-1, -1))
       }

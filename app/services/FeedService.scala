@@ -1,7 +1,14 @@
 package services
 
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import com.sksamuel.pulsar4s.akka.streams.sink
+import com.sksamuel.pulsar4s.{ProducerConfig, ProducerMessage, Topic}
 import config.PulsarConfig
-import org.apache.pulsar.client.api.{MessageId, PulsarClient}
+import connections.PulsarConnection
+import org.apache.pulsar.client.api.{MessageId, PulsarClient, Schema}
 import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 
@@ -12,30 +19,28 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class FeedService @Inject()(implicit val ec: ExecutionContext,
                             val lifecycle: ApplicationLifecycle,
-                            val playConfig: Configuration
+                            val playConfig: Configuration,
+                            val pulsarConnection: PulsarConnection
                            ) extends Logging {
 
-  val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
+  import pulsarConnection._
 
   logger.info(s"${Console.MAGENTA_B}FEED SERVICE INITIATED...${Console.RESET}")
 
   val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
   val TOPIC = pulsarConfig.jobsTopic
 
-  protected val client = PulsarClient.builder()
-    .serviceUrl(PULSAR_SERVICE_URL)
-    .build()
+  implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-service")
+  implicit val mat = Materializer(system)
 
-  protected val producer = client.newProducer()
-    .topic(TOPIC)
-    .create()
+  implicit val schema: Schema[Array[Byte]] = Schema.BYTES
 
-  lifecycle.addStopHook { () =>
-    Future.successful(producer.closeAsync().toCompletableFuture.toScala.flatMap(_ => client.closeAsync().toCompletableFuture.toScala))
-  }
+  protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),
+    enableBatching = Some(false), blockIfQueueFull = Some(false)))
 
-  def send(data: Array[Byte]): Future[MessageId] = {
-    producer.sendAsync(data).toCompletableFuture.toScala
+  def send(data: Array[Byte]): Unit = {
+    val record = ProducerMessage[Array[Byte]](data)
+    Source.single(record).to(sink(producer)).run()
   }
 
 }

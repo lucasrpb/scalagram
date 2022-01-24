@@ -4,6 +4,7 @@ import actions.{AccessTokenAction, LoginAction}
 import app.{Cache, Constants}
 import models.{CodeInfo, SessionInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.Logging
+import play.api.libs.Codecs.sha1
 import play.api.libs.json.{JsBoolean, JsString, Json}
 import play.api.mvc._
 import repositories.UserRepository
@@ -88,7 +89,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
   def login() = Action.async { implicit request: Request[AnyContent] =>
 
     val login = request.headers.get("login").get
-    val password = request.headers.get("password").get
+    val password = sha1(request.headers.get("password").get)
 
     logger.info(s"login ${login} password: ${password}\n")
 

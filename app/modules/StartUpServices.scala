@@ -4,7 +4,6 @@ import play.api.Logging
 import services.{FeedJobHandler, FeedService}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 
 @Singleton
 class StartUpServices @Inject ()(val feedHandler: FeedJobHandler,

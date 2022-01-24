@@ -39,11 +39,11 @@ class LoginPageState extends State<LoginPageWidget> {
 
     var response = await session.post(URL, json.encode({
       "login": this.login,
-      "password": digest
+      "password": this.password
     }), {
       "content-type": "application/json",
       "login": this.login,
-      "password": digest
+      "password": this.password
     });
 
     print(response.statusCode);
@@ -82,7 +82,7 @@ class LoginPageState extends State<LoginPageWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           TextFormField(
-            initialValue: "user0",
+            initialValue: "luanagpb",
             // The validator receives the text that the user has entered.
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -95,7 +95,7 @@ class LoginPageState extends State<LoginPageWidget> {
             },
           ),
           TextFormField(
-            initialValue: "4321",
+            initialValue: "1234",
             // The validator receives the text that the user has entered.
             validator: (value) {
               if (value == null || value.isEmpty) {

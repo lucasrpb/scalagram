@@ -1,6 +1,7 @@
 package repositories
 
 import com.google.inject.ImplementedBy
+import connections.PostgresConnection
 import models.Profile
 import models.slickmodels.ProfileTable
 import play.api.Logging
@@ -19,13 +20,11 @@ trait ProfileRepository {
 }
 
 @Singleton
-class ProfileRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+class ProfileRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifecycle: ApplicationLifecycle,
+                                       val postgresConnection: PostgresConnection)
   extends ProfileRepository with Logging {
-  val db = Database.forConfig("postgres")
 
-  lifecycle.addStopHook { () =>
-    Future.successful(db.close())
-  }
+  import postgresConnection._
 
   override def upsert(id: UUID, profile: Profile): Future[Boolean] = {
     val action = for {

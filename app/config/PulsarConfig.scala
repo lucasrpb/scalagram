@@ -9,7 +9,8 @@ case class PulsarConfig(serviceURL: String,
                         clientURL: String,
                         namespace: String,
                         jobsTopic: String,
-                        feedTopic: String
+                        feedTopic: String,
+                        token: String
                        )
 
 @Singleton
@@ -22,7 +23,8 @@ object PulsarConfig {
         clientURL = config.getString("clientURL"),
         namespace = config.getString("namespace"),
         jobsTopic = config.getString("jobs-topic"),
-        feedTopic = config.getString("feed-topic")
+        feedTopic = config.getString("feed-topic"),
+        token = config.getString("token")
       )
     }
   }

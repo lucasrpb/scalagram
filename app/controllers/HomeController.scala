@@ -6,6 +6,7 @@ import models.SessionInfo
 
 import javax.inject._
 import play.api._
+import play.api.libs.Codecs.sha1
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.UserRepository
@@ -39,7 +40,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
   protected def process(request: Request[AnyContent]): Future[Result] = {
 
     val login = request.headers.get("login").get
-    val password = request.headers.get("password").get
+    val password = sha1(request.headers.get("password").get)
 
     //logger.info(s"\n${Console.GREEN_B}data: ${request.body} type: ${request.contentType} json: ${data}${Console.RESET}\n")
 

@@ -1,6 +1,7 @@
 package repositories
 
 import com.google.inject.ImplementedBy
+import connections.PostgresConnection
 import models.{Feed, Follower, FollowerDetailed, Post, PostDetailed}
 import models.slickmodels.{FeedTable, FollowerTable, PostTable, UserTable}
 import play.api.Logging
@@ -27,13 +28,12 @@ trait FeedRepository {
 }
 
 @Singleton
-class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle: ApplicationLifecycle)
+class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
+                                    val lifecycle: ApplicationLifecycle,
+                                    val postgresConnection: PostgresConnection)
   extends FeedRepository with Logging {
-  val db = Database.forConfig("postgres")
 
-  lifecycle.addStopHook { () =>
-    Future.successful(db.close())
-  }
+  import postgresConnection._
 
   override def follow(id: UUID, data: Follower): Future[Boolean] = {
     val action = for {
@@ -74,18 +74,18 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
   override def getFollowerIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]] = {
     if(lastId.isDefined) {
-      return db.run(FollowerTable.followers.filter(f => f.followerId === id && f.userId > lastId.get.asColumnOf[UUID])
-        .sortBy(_.userId)
+      return db.run(FollowerTable.followers.filter(f => f.userId === id && f.followerId > lastId.get.asColumnOf[UUID])
+        .sortBy(_.followerId)
         .take(n)
         .result
-      ).map(_.map(_.userId))
+      ).map(_.map(_.followerId))
     }
 
-    db.run(FollowerTable.followers.filter(f => f.followerId === id)
-      .sortBy(_.userId)
+    db.run(FollowerTable.followers.filter(f => f.userId === id)
+      .sortBy(_.followerId)
       .take(n)
       .result
-    ).map(_.map(_.userId))
+    ).map(_.map(_.followerId))
   }
 
   override def insertPostIds(posts: Seq[Feed]): Future[Boolean] = {
@@ -99,7 +99,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
     if(!tags.isEmpty){
       return db.run(
         FeedTable.feeds.filter(_.followerId === id)
-          .sortBy(_.postedAt.desc)
+          .sortBy(_.postedAt.asc)
           .join(PostTable.posts).on{case (f, p) => f.postId === p.id && p.tags @& tags}
           .drop(start)
           .take(n)
@@ -120,7 +120,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, lifecycle
 
     db.run(
       FeedTable.feeds.filter(_.followerId === id)
-        .sortBy(_.postedAt.desc)
+        .sortBy(_.postedAt.asc)
         .join(PostTable.posts).on{case (f, p) => f.postId === p.id}
         .drop(start)
         .take(n)

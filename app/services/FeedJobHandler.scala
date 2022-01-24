@@ -8,8 +8,9 @@ import app.Constants
 import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, ProducerConfig, ProducerMessage, PulsarClient, PulsarClientConfig, Subscription, Topic}
 import com.sksamuel.pulsar4s.akka.streams.{sink, source}
 import config.PulsarConfig
+import connections.PulsarConnection
 import models.{Feed, FeedJob}
-import org.apache.pulsar.client.api.{MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
+import org.apache.pulsar.client.api.{Authentication, AuthenticationFactory, MessageId, Schema, SubscriptionInitialPosition, SubscriptionType}
 import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.Json
@@ -23,21 +24,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
                                lifecycle: ApplicationLifecycle,
                                val feedRepo: FeedRepository,
-                               playConfig: Configuration,
+                               val pulsarConnection: PulsarConnection
                               ) extends Logging {
 
-  val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
+  import pulsarConnection._
+
+  val TOPIC = pulsarConfig.jobsTopic
 
   logger.info(s"${Console.MAGENTA_B}FEED PROCESSOR INITIATED...${Console.RESET}")
-
-  val PULSAR_SERVICE_URL = pulsarConfig.serviceURL
-  val TOPIC = pulsarConfig.jobsTopic
 
   implicit val system = ActorSystem.create[Nothing](Behaviors.empty[Nothing], "feed-job-handler")
   implicit val mat = Materializer(system)
 
-  val config = PulsarClientConfig(serviceUrl = PULSAR_SERVICE_URL, allowTlsInsecureConnection = Some(true))
-  val client = PulsarClient(PULSAR_SERVICE_URL)
   implicit val schema: Schema[Array[Byte]] = Schema.BYTES
 
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),

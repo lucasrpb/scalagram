@@ -28,7 +28,7 @@ class _FeedWidgetState extends State<FeedWidget> {
   List<int> top = <int>[];
 
   List<FeedPost> posts = [];
-  var URL = Uri.parse("http://10.0.2.2:9000/feed/posts/0/2");
+  var URL = Uri.parse("http://10.0.2.2:9000/feed/posts/0/3");
 
   /*Future<http.Response> action() async {
     var response = await session.post("http://10.0.2.2:9000/action", {}, session.headers);
@@ -45,7 +45,9 @@ class _FeedWidgetState extends State<FeedWidget> {
   Future<List<FeedPost>> _getPosts() async {
 
     var response = await session.get("http://10.0.2.2:9000/feed/posts/${posts.length}/3", session.headers);
-    
+
+    //var response = await session.get("http://10.0.2.2:9000/feed/posts/0/1", session.headers);
+
     if(response.statusCode != 200){
 
       print("session headers: ${session.headers}\n");
@@ -65,7 +67,9 @@ class _FeedWidgetState extends State<FeedWidget> {
 
     posts.addAll(list);
 
-    print(list);
+    posts.sort((f, g) => g.postedAt.compareTo(f.postedAt));
+
+    print(list.map((e) => e.description));
 
     setState(() {
     });

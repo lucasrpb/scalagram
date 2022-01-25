@@ -87,7 +87,7 @@ class FeedController @Inject()(val controllerComponents: ControllerComponents,
         val session = Json.parse(bytes).as[SessionInfo]
         val id = UUID.fromString(session.id)
 
-        repo.getFollowers(id, start, n).map(followers => Ok(Json.toJson(followers)))
+        repo.getFollowing(id, start, n).map(followers => Ok(Json.toJson(followers)))
 
     }
   }

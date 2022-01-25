@@ -4,10 +4,10 @@ import play.api.libs.json.{Json, Reads, Writes}
 
 import java.util.UUID
 
-case class Post(id: UUID = UUID.randomUUID,
+case class Post(id: UUID,
                 userId: UUID,
-                imgType: String = "",
-                description: Option[String] = Some(""),
+                imgType: String,
+                description: Option[String] = None,
                 var tags: List[String] = List.empty[String],
                 postedAt: Long = System.currentTimeMillis(),
                 lastUpdateAt: Long = System.currentTimeMillis()

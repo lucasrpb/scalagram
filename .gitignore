@@ -16,3 +16,4 @@ target
 google_cloud_credentials.json
 conf/application.conf
 root.crt
+.g8

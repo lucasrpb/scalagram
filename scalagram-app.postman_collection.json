@@ -1,0 +1,396 @@
+{
+	"info": {
+		"_postman_id": "99ff1cba-be41-4f33-a538-a57216333ec8",
+		"name": "scalagram-app",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\": \"Lucas\", \"email\": \"lucasrpb@gmail.com\", \"age\": 32}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"username\": \"lucasrpb\", \"password\": \"1234\",\"email\":\"lucasrpb@gmail.com\",\"phone\":\"+5545998157014\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/profile",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\":\"Lucas Batistussi\",\"bio\":\"I am a software engineer\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/posts",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"img\": \"1.png\", \"description\": \"best image ever\", \"tags\": [\"\"]}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/posts",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/users/login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "login",
+						"value": "lucasrpb",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "1234",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/users/login",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"username\":\"vilso\", \"email\": \"vilso@gmail.com\", \"password\":\"1234\", \"phone\": \"45999227819\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/users",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/users/confirm/24b4c632-d370-4a1c-b12a-a641b988a089",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/users/confirm/24b4c632-d370-4a1c-b12a-a641b988a089",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"users",
+						"confirm",
+						"24b4c632-d370-4a1c-b12a-a641b988a089"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/feed/follow",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"followerId\": \"c62a6a40-7e6b-4b5c-b79d-3d485481c516\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/feed/follow",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"feed",
+						"follow"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/posts/upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "data",
+							"value": "{\"description\":\"best dog\",\"tags\":[\"dog\"]}",
+							"type": "text"
+						},
+						{
+							"key": "img",
+							"type": "file",
+							"src": "/D:/Users/lucas/Downloads/cacco.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:9000/posts/upload",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"posts",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/feed/posts/0/1",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:9000/feed/posts/0/1",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"feed",
+						"posts",
+						"0",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"body\": \"I agree!\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"posts",
+						"comments",
+						"9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"posts",
+						"comments",
+						"9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+						"0",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/posts/comments",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"id\": \"3bcacbb9-ba42-4b0b-bbcf-6b7789cf2741\", \"body\": \"indeed!\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/posts/comments",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"posts",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:9000/posts",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"id\":\"9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4\", \"description\": \"best singer in the world\", \"tags\":[\"dion\"]}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/posts",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"posts"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

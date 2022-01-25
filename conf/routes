@@ -1,0 +1,74 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+# An example controller showing a sample home page
+GET     /                           controllers.HomeController.index()
+
++nocsrf
+GET     /login                          controllers.HomeController.login()
+
+# USERS CONTROLLER
+
++nocsrf
+POST    /users  controllers.UserController.insert()
+
++nocsrf
+PUT     /users/confirm/:code    controllers.UserController.confirm(code)
+
++nocsrf
+PUT     /users/code/:login  controllers.UserController.generateNewCode(login)
+
++nocsrf
+POST    /users/login    controllers.UserController.login()
+
++nocsrf
+POST    /users/logout   controllers.UserController.logout()
+
++nocsrf
+PUT     /users/token    controllers.UserController.generateNewToken()
+
++nocsrf
+PUT     /users/info     controllers.UserController.update()
+
+# PROFILE CONTROLLER
++nocsrf
+PUT     /profiles  controllers.ProfileController.upsert()
+
+GET     /profiles/:id  controllers.ProfileController.getProfile(id)
+
+# FEED CONTROLLER
++nocsrf
+POST   /feed/follow controllers.FeedController.follow()
+
++nocsrf
+POST   /feed/unfollow/:id controllers.FeedController.unfollow(id)
+
+GET    /feed/follow/:start/:n controllers.FeedController.getFollowers(start: Int, n: Int)
+
+GET    /feed/posts/:start/:n controllers.FeedController.getFeed(start: Int, n: Int)
+
+GET     /posts/stream/:id  controllers.FeedController.feedStream(id)
+
++nocsrf
+POST    /posts/comments/:id controllers.PostController.comment(id)
+
++nocsrf
+PUT     /posts  controllers.PostController.updatePost()
+
++nocsrf
+PUT     /posts/comments controllers.PostController.updateComment()
+
+GET    /posts/comments/:id/:start/:n controllers.PostController.getComments(id: String, start: Int, n: Int)
+
+# POST CONTROLLER
+#+nocsrf
+#POST   /posts   controllers.PostController.insert()
++nocsrf
+POST   /posts/upload controllers.PostController.upload()
+
+GET    /posts/:id/:start/:n   controllers.PostController.getPostsByUserId(id: String, start: Int, n: Int)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

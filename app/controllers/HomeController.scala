@@ -37,7 +37,11 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
     Ok(views.html.index())
   }
 
-  protected def process(request: Request[AnyContent]): Future[Result] = {
+  def login() = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.login())
+  }
+
+  /*protected def process(request: Request[AnyContent]): Future[Result] = {
 
     val login = request.headers.get("login").get
     val password = sha1(request.headers.get("password").get)
@@ -98,5 +102,5 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
 
   def action() = Action.async { implicit request: Request[AnyContent] =>
     process2(request)
-  }
+  }*/
 }

@@ -4,7 +4,7 @@ import com.google.common.base.Charsets
 import com.google.inject.ImplementedBy
 import com.lambdaworks.redis.RedisClient
 import com.lambdaworks.redis.codec.ByteArrayCodec
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
@@ -20,11 +20,12 @@ trait Cache {
 
 @Singleton
 class RedisCache @Inject() (implicit val lifecycle: ApplicationLifecycle,
+                            val config: Configuration,
                             val ec: ExecutionContext) extends Cache with Logging {
 
   logger.info(s"instance: ${this.hashCode()}")
 
-  val redisClient = RedisClient.create("redis://bxk2u26SKdBWto41e3qlRBoPeOe3ApfK@redis-10214.c1.us-east1-2.gce.cloud.redislabs.com:10214")
+  val redisClient = RedisClient.create(config.get[String]("redis.url"))
   val connection = redisClient.connect(new ByteArrayCodec()).async()
 
   override def put(key: String, value: Array[Byte]): Future[Boolean] = {

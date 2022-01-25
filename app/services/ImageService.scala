@@ -10,7 +10,7 @@ import connections.PulsarConnection
 import models.ImageJob
 import org.apache.pulsar.client.api.{MessageId, SubscriptionInitialPosition, SubscriptionType}
 import org.imgscalr.Scalr
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.json.Json
 import repositories.FeedRepository
@@ -27,16 +27,17 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 class ImageService @Inject()(implicit val ec: ExecutionContext,
                              lifecycle: ApplicationLifecycle,
                              val feedRepo: FeedRepository,
+                             val config: Configuration,
                              val pulsarConnection: PulsarConnection) extends Logging {
 
   import pulsarConnection._
 
   val TOPIC = pulsarConfig.imageJobsTopic
-  val BUCKET_NAME = "scalagram_pictures"
+  val BUCKET_NAME = config.get[String]("services.image.bucket")
 
   logger.info(s"${Console.MAGENTA_B}IMAGE SERVICE INITIATED...${Console.RESET}")
 
-  val credentials = GoogleCredentials.fromStream(new FileInputStream("google_cloud_credentials.json"))
+  val credentials = GoogleCredentials.fromStream(new FileInputStream(config.get[String]("google.credentials.path")))
   val storage = StorageOptions.newBuilder.setCredentials(credentials).build.getService()
 
   protected val producer = () => client.producer[Array[Byte]](ProducerConfig(topic = Topic(TOPIC),

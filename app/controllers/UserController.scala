@@ -5,7 +5,7 @@ import app.{Cache, Constants}
 import models.{CodeInfo, SessionInfo, TokenInfo, User, UserStatus, UserUpdate}
 import play.api.Logging
 import play.api.libs.Codecs.sha1
-import play.api.libs.json.{JsBoolean, JsString, Json}
+import play.api.libs.json.{JsArray, JsBoolean, JsError, JsString, JsSuccess, Json}
 import play.api.mvc._
 import repositories.UserRepository
 
@@ -25,13 +25,40 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
                                implicit val ec: ExecutionContext) extends BaseController with Logging {
 
   def insert() = Action.async { implicit request: Request[AnyContent] =>
-    val user = request.body.asJson.get.as[User]
 
-    logger.info(s"${user}")
+    val validation = request.body.asJson.get.validate(User.userFormat)
 
-    repo.insert(user).map {
-      case None => InternalServerError("Something bad happened!")
-      case Some(code) => Ok(Json.toJson(code))
+    validation match {
+      case JsError(errors) =>
+
+        Future.successful(
+          BadRequest(
+            Json.toJson(errors.map{case (path, errors) => path.toString() -> errors.map(_.messages)}.toMap)
+          )
+        )
+
+      case JsSuccess(value, path) =>
+
+        val user = validation.get
+
+        logger.info(s"${user}")
+
+        repo.userExists(user.username, user.email, user.phone).flatMap {
+          case false =>
+
+            repo.insert(user).map { ok =>
+              Ok(Json.toJson(ok))
+            }
+
+          case true => Future.successful(BadRequest(Json.obj(
+              "error" -> JsString("Username, email or phone already exists!")
+            ))
+          )
+
+        }.recover {
+          case t: Throwable => InternalServerError("Something bad happened!")
+        }
+
     }
   }
 
@@ -87,29 +114,43 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
 
   def login() = Action.async { implicit request: Request[AnyContent] =>
 
-    val login = request.headers.get("login").get
-    val password = sha1(request.headers.get("password").get)
+    val headers = request.headers
+    val loginOpt = headers.get("login")
+    val passwordOpt = headers.get("password")
 
-    logger.info(s"login ${login} password: ${password}\n")
+    if(loginOpt.isEmpty || passwordOpt.isEmpty){
+      Future.successful(
+        Unauthorized("Missing header login and/or password information!")
+      )
+    } else {
 
-    repo.getTokenByLogin(login, password).map {
-      case None => Unauthorized("Login and/or password are wrong!")
-      case Some(info) =>
+      val login = loginOpt.get
+      val password = sha1(passwordOpt.get)
 
-        val sessionId = UUID.randomUUID.toString
+      logger.info(s"login ${login} password: ${password}\n")
 
-        cache.put(info.id.toString, sessionId.getBytes())
+      repo.getTokenByLogin(login, password).flatMap {
+        case None => Future.successful(Unauthorized("Login and/or password are wrong!"))
+        case Some(info) =>
 
-        cache.put(sessionId, Json.toBytes(Json.toJson(SessionInfo(
-          info.id.toString,
-          info.login,
-          info.token,
-          info.expiresAt
-        ))))
+          val sessionId = UUID.randomUUID.toString
 
-        Ok(Json.toJson(info)).withSession(
-          "sessionId" -> sessionId
-        )
+          for {
+            _ <- cache.put(info.id.toString, sessionId.getBytes())
+
+            _ <- cache.put(sessionId, Json.toBytes(Json.toJson(SessionInfo(
+              info.id.toString,
+              info.login,
+              info.token,
+              info.expiresAt
+            ))))
+          } yield {
+            Ok(Json.toJson(info)).withSession(
+              "sessionId" -> sessionId
+            )
+          }
+      }
+
     }
   }
 
@@ -121,28 +162,33 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
           "error" -> JsString("Missing refreshToken header!")
         )
       ))
+
       case Some(refreshToken) =>
 
-        repo.generateNewToken(refreshToken).map {
-          case None => Forbidden(Json.obj(
+        repo.generateNewToken(refreshToken).flatMap {
+
+          case None => Future.successful(Forbidden(Json.obj(
             "error" -> JsString("Invalid refresh token or user not active!")
-          ))
+          )))
+
           case Some(info) =>
 
             val sessionId = UUID.randomUUID.toString
 
-            cache.put(info.id.toString, sessionId.getBytes())
+            for {
+              _ <- cache.put(info.id.toString, sessionId.getBytes())
 
-            cache.put(sessionId, Json.toBytes(Json.toJson(SessionInfo(
-              info.id.toString,
-              info.login,
-              info.token,
-              info.expiresAt
-            ))))
-
-            Ok(Json.toJson(info)).withSession(
-              "sessionId" -> sessionId
-            )
+              _ <- cache.put(sessionId, Json.toBytes(Json.toJson(SessionInfo(
+                      info.id.toString,
+                      info.login,
+                      info.token,
+                      info.expiresAt
+              ))))
+            } yield {
+              Ok(Json.toJson(info)).withSession(
+                "sessionId" -> sessionId
+              )
+            }
         }
 
     }

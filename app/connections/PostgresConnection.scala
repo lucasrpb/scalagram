@@ -16,8 +16,7 @@ class PostgresConnection @Inject ()(implicit ec: ExecutionContext,
 
   protected val ds = new PGSimpleDataSource()
 
-  ds.setURL("jdbc:postgresql://45fbc0f7-1c77-4a28-bd99-7e09e41ee965.gcp.ybdb.io:5433/postgres?ssl=true&sslmode=verify-full&sslrootcert=./root.crt")
-
+  ds.setURL(config.get[String]("postgres.url"))
   ds.setUser(config.get[String]("postgres.user"))
   ds.setPassword(config.get[String]("postgres.password"))
 

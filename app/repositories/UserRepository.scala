@@ -18,6 +18,7 @@ import scala.util.{Failure, Success}
 
 @ImplementedBy(classOf[UserRepositoryImpl])
 trait UserRepository {
+  def userExists(username: String, email: String, phone: String): Future[Boolean]
   def insert(user: User): Future[Option[CodeInfo]]
 
   def getCodeInfo(code: String): Future[Option[CodeInfo]]
@@ -141,5 +142,11 @@ class UserRepositoryImpl @Inject ()(implicit val ec: ExecutionContext, val lifec
     }
 
     db.run(DBIO.sequence(actions).transactionally).map(_ => true)
+  }
+
+  override def userExists(username: String, email: String, phone: String): Future[Boolean] = {
+    db.run(
+      UserTable.users.filter(u => u.username === username || u.email === email || u.phone === phone).exists.result
+    )
   }
 }

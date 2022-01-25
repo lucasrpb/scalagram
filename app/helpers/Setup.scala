@@ -21,9 +21,9 @@ object Setup extends Logging {
 
   def main(args: Array[String]): Unit = {
 
-    val playConfig = play.api.Configuration.load(Environment.simple())
+    val config = play.api.Configuration.load(Environment.simple())
 
-    val pulsarConfig: PulsarConfig = playConfig.get[PulsarConfig]("pulsar")
+    val pulsarConfig: PulsarConfig = config.get[PulsarConfig]("pulsar")
 
     val admin = PulsarAdmin.builder()
       .authentication(AuthenticationFactory.token(pulsarConfig.token))
@@ -35,9 +35,9 @@ object Setup extends Logging {
 
     val ds = new PGSimpleDataSource()
 
-    ds.setURL("jdbc:postgresql://45fbc0f7-1c77-4a28-bd99-7e09e41ee965.gcp.ybdb.io:5433/postgres?ssl=true&sslmode=verify-full&sslrootcert=./root.crt")
-    ds.setUser("admin")
-    ds.setPassword("j4aQyOhEFLV9RvfPoh5l7eZ9607vsO")
+    ds.setURL(config.get[String]("postgres.url"))
+    ds.setUser(config.get[String]("postgres.user"))
+    ds.setPassword(config.get[String]("postgres.password"))
 
     val db = Database.forDataSource(ds, None)
 

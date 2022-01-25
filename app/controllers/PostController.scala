@@ -6,17 +6,17 @@ import com.google.common.base.Charsets
 import com.sksamuel.pulsar4s.akka.streams.source
 import com.sksamuel.pulsar4s.{ConsumerConfig, ConsumerMessage, Subscription, Topic}
 import connections.PulsarConnection
-import models.{Comment, Feed, FeedJob, ImageJob, Post, SessionInfo, UpdateComment, UpdatePost}
 import models.Post._
+import models._
 import org.apache.pulsar.client.api.{MessageId, SubscriptionInitialPosition, SubscriptionType}
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc._
 import repositories.{FeedRepository, PostRepository}
 import services.{FeedService, ImageService}
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 import java.util.UUID
 import javax.inject._
 import scala.collection.concurrent.TrieMap
@@ -90,11 +90,21 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
     val postId = UUID.randomUUID()
     val ext = com.google.common.io.Files.getFileExtension(file.filename)
 
-    val data = (Json.parse(dataOpt.get.head.getBytes()).as[JsObject] ++ Json.obj(
+    val jdata = (Json.parse(dataOpt.get.head.getBytes()).as[JsObject] ++ Json.obj(
       "userId" -> JsString(session.id),
       "imgType" -> JsString(ext),
       "id" -> JsString(postId.toString)
-    )).as[Post]
+    ))//.as[Post]
+
+    val validation = jdata.validate(Post.postFormat)
+
+    if(validation.isError){
+      return Future.successful(BadRequest(Json.toJson(
+        validation.asEither.left.get.map{case (path, errors) => path.toString() -> errors.map(_.messages)}.toMap
+      )))
+    }
+
+    val data = validation.get
 
     //val path = img.moveTo(Paths.get(s"${Constants.IMG_UPLOAD_FOLDER}/${postId.toString}.${ext}"), replace = true)
 
@@ -186,9 +196,11 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
   def comment(postId: String) = loginAction.async { implicit request: Request[AnyContent] =>
 
     cache.get(request.session.data.get("sessionId").getOrElse("")).flatMap {
+
       case None => Future.successful(InternalServerError(Json.obj(
         "error" -> JsString("Session not found!")
       )).withNewSession)
+
       case Some(bytes) =>
 
         val session = Json.parse(bytes).as[SessionInfo]

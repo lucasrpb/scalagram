@@ -15,3 +15,4 @@ target
 /scalagram-app/build
 google_cloud_credentials.json
 conf/application.conf
+root.crt

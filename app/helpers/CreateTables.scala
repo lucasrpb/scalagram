@@ -24,13 +24,12 @@ object CreateTables extends Logging {
     val db = Database.forDataSource(ds, None)
 
     val actions = DBIO.seq(
-      /*UserTable.users.schema.createIfNotExists,
+      UserTable.users.schema.createIfNotExists,
       ProfileTable.profiles.schema.createIfNotExists,
       PostTable.posts.schema.createIfNotExists,
       FeedTable.feeds.schema.createIfNotExists,
-      FollowerTable.followers.schema.createIfNotExists*/
-
-      PostTable.posts.schema.createIfNotExists
+      FollowerTable.followers.schema.createIfNotExists,
+      CommentTable.comments.schema.createIfNotExists
     )
 
     try {

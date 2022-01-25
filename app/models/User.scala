@@ -16,7 +16,7 @@ case class User(id: UUID = UUID.randomUUID(),
                 createdAt: Long = System.currentTimeMillis(),
                 tokenLastUpdate: Long = System.currentTimeMillis(),
                 codeLastUpdate: Long = System.currentTimeMillis(),
-                status: Int = UserStatus.NOT_CONFIRMED) {
+                status: Int = UserStatus.ACTIVE) {
 
   this.password = sha1(password)
 

@@ -62,9 +62,9 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
 
     feedRepo.insertPostIds(job.followers.map { f =>
       Feed(
-        job.fromUserId,
-        f,
         job.postId,
+        f,
+        job.fromUserId,
         job.postedAt
       )
     }).flatMap { ok =>
@@ -92,7 +92,7 @@ class FeedJobHandler @Inject()(implicit val ec: ExecutionContext,
 
       }
 
-    }
+    }.recover {case _ => true}
 
   }
 

@@ -20,14 +20,9 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:9000/",
-					"protocol": "http",
+					"raw": "{{scalagram_host}}",
 					"host": [
-						"localhost"
-					],
-					"port": "9000",
-					"path": [
-						""
+						"{{scalagram_host}}"
 					]
 				}
 			},
@@ -48,12 +43,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/users",
-					"protocol": "http",
+					"raw": "{{scalagram_host}}/users",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "3000",
 					"path": [
 						"users"
 					]
@@ -76,12 +69,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/profile",
-					"protocol": "http",
+					"raw": "{{scalagram_host}}/profile",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "3000",
 					"path": [
 						"profile"
 					]
@@ -104,12 +95,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/posts",
-					"protocol": "http",
+					"raw": "{{scalagram_host}}/posts",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "3000",
 					"path": [
 						"posts"
 					]
@@ -134,11 +123,10 @@
 					}
 				],
 				"url": {
-					"raw": "localhost:9000/users/login",
+					"raw": "{{scalagram_host}}/users/login",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"users",
 						"login"
@@ -154,7 +142,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\":\"vilso\", \"email\": \"vilso@gmail.com\", \"password\":\"1234\", \"phone\": \"45999227819\"}",
+					"raw": "{\"username\":\"lucaspb\", \"email\": \"lucasrpb@gmail.com\", \"password\":\"1234\", \"phone\": \"4598157014\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -162,11 +150,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/users",
+					"raw": "{{scalagram_host}}/users",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"users"
 					]
@@ -189,15 +176,14 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/users/confirm/24b4c632-d370-4a1c-b12a-a641b988a089",
+					"raw": "{{scalagram_host}}/users/confirm/45d042d8-b320-4d38-817c-d02cd17c977f",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"users",
 						"confirm",
-						"24b4c632-d370-4a1c-b12a-a641b988a089"
+						"45d042d8-b320-4d38-817c-d02cd17c977f"
 					]
 				}
 			},
@@ -218,11 +204,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/feed/follow",
+					"raw": "{{scalagram_host}}/feed/follow",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"feed",
 						"follow"
@@ -252,11 +237,10 @@
 					]
 				},
 				"url": {
-					"raw": "localhost:9000/posts/upload",
+					"raw": "{{scalagram_host}}/posts/upload",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"posts",
 						"upload"
@@ -271,11 +255,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:9000/feed/posts/0/1",
+					"raw": "{{scalagram_host}}/feed/posts/0/1",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"feed",
 						"posts",
@@ -301,11 +284,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+					"raw": "{{scalagram_host}}/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"posts",
 						"comments",
@@ -321,11 +303,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
+					"raw": "{{scalagram_host}}/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"posts",
 						"comments",
@@ -352,11 +333,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/posts/comments",
+					"raw": "{{scalagram_host}}/posts/comments",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"posts",
 						"comments"
@@ -380,11 +360,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:9000/posts",
+					"raw": "{{scalagram_host}}/posts",
 					"host": [
-						"localhost"
+						"{{scalagram_host}}"
 					],
-					"port": "9000",
 					"path": [
 						"posts"
 					]

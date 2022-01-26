@@ -56,7 +56,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents,
           )
 
         }.recover {
-          case t: Throwable => InternalServerError("Something bad happened!")
+          case t: Throwable => InternalServerError("Something really bad happened!")
         }
 
     }

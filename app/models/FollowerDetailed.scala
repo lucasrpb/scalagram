@@ -5,8 +5,8 @@ import play.api.libs.json.{Json, Reads, Writes}
 import java.util.UUID
 
 case class FollowerDetailed(userId: UUID,
-                            followerId: UUID,
-                            followerUsername: String,
+                            followeeId: UUID,
+                            followeeUsername: String,
                             followedAt: Long = System.currentTimeMillis())
 
 

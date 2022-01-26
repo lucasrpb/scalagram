@@ -230,7 +230,12 @@ class PostController @Inject()(val controllerComponents: ControllerComponents,
 
         val id = UUID.fromString(session.id)
 
-        val uc = request.body.asJson.get.as[UpdateComment]
+        val uc = (request.body.asJson.get.asInstanceOf[JsObject] ++ Json.obj(
+          "userId" -> JsString(session.id)
+        )).as[UpdateComment]
+
+        logger.debug(uc.toString)
+
         postRepo.updateComment(id, uc).map(ok => Ok(Json.toJson(ok)))
 
     }

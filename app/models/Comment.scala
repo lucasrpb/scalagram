@@ -4,7 +4,7 @@ import play.api.libs.json.{Json, Reads, Writes}
 import java.util.UUID
 
 case class Comment(id: UUID,
-                   postId: UUID,
+                   commentId: UUID,
                    userId: UUID,
                    body: String,
                    postedAt: Long = System.currentTimeMillis(),

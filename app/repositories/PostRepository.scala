@@ -79,7 +79,7 @@ class PostRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
 
   override def updateComment(curUserId: UUID, uc: UpdateComment): Future[Boolean] = {
     db.run(
-      CommentTable.comments.filter(c => c.id === uc.id && c.userId === curUserId).map(c => c.body -> c.lastUpdateAt).update(uc.body -> System.currentTimeMillis())
+      CommentTable.comments.filter(c => c.id === uc.commentId && c.userId === curUserId).map(c => c.body -> c.lastUpdateAt).update(uc.body -> System.currentTimeMillis())
     ).map(_ == 1)
   }
 

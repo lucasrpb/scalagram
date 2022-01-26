@@ -4,13 +4,11 @@ import play.api.libs.json.{Json, Reads, Writes}
 
 import java.util.UUID
 
-case class UpdateComment(id: UUID,
-                         postId: UUID,
+case class UpdateComment(commentId: UUID,
                          userId: UUID,
                          body: String,
                          postedAt: Long = System.currentTimeMillis(),
-                         lastUpdateAt: Long = System.currentTimeMillis()
-                  )
+                         lastUpdateAt: Long = System.currentTimeMillis())
 
 
 object UpdateComment {

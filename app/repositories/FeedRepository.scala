@@ -18,9 +18,12 @@ trait FeedRepository {
 
   def follow(id: UUID, data: Follower): Future[Boolean]
   def unfollow(id: UUID, followerId: UUID): Future[Boolean]
+
+  // Get the users the provided id follows
   def getFollowing(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]]
   def getFollowingIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]]
 
+  // Get user who follow the provided id
   def getFollowers(id: UUID, start: Int, n: Int): Future[Seq[FollowerDetailed]]
   def getFollowerIds(id: UUID, lastId: Option[UUID], n: Int): Future[Seq[UUID]]
 
@@ -39,7 +42,7 @@ class FeedRepositoryImpl @Inject ()(implicit val ec: ExecutionContext,
 
   override def follow(id: UUID, data: Follower): Future[Boolean] = {
     val action = for {
-      exists <- FollowerTable.followers.filter(u => u.userId === id && u.followeeId ===data.followeeId).exists.result
+      exists <- FollowerTable.followers.filter(u => u.userId === id && u.followeeId === data.followeeId).exists.result
       result <- exists match {
         case true => DBIO.successful(0)
         case false => FollowerTable.followers += data

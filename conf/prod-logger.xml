@@ -31,6 +31,17 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
+  <!--<logger name="play" level="ERROR" />
+  <logger name="application" level="ERROR" />
+  <logger name="app" level="ERROR" />
+
+  <logger name="repositories" level="ERROR" />
+  <logger name="controllers" level="ERROR" />
+  <logger name="actions" level="ERROR" />
+  <logger name="services" level="ERROR" />
+  <logger name="app" level="ERROR" />
+  <logger name="modules" level="ERROR" />-->
+
   <root level="ERROR">
     <appender-ref ref="ASYNCFILE" />
     <appender-ref ref="ASYNCSTDOUT" />

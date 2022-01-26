@@ -6,13 +6,13 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:3000/",
+			"name": "INSERT USERS",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"name\": \"Lucas\", \"email\": \"lucasrpb@gmail.com\", \"age\": 32}",
+					"raw": "{\"username\": \"luanagpb\", \"password\": \"1234\",\"email\":\"luanagpb@gmail.com\",\"phone\":\"+554594154145\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -20,32 +20,10 @@
 					}
 				},
 				"url": {
-					"raw": "{{scalagram_host}}",
+					"raw": "scalagram.com/users",
 					"host": [
-						"{{scalagram_host}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:3000/users",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\"username\": \"lucasrpb\", \"password\": \"1234\",\"email\":\"lucasrpb@gmail.com\",\"phone\":\"+5545998157014\"}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{scalagram_host}}/users",
-					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"users"
@@ -55,59 +33,7 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:3000/profile",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\"name\":\"Lucas Batistussi\",\"bio\":\"I am a software engineer\"}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{scalagram_host}}/profile",
-					"host": [
-						"{{scalagram_host}}"
-					],
-					"path": [
-						"profile"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:3000/posts",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\"img\": \"1.png\", \"description\": \"best image ever\", \"tags\": [\"\"]}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{scalagram_host}}/posts",
-					"host": [
-						"{{scalagram_host}}"
-					],
-					"path": [
-						"posts"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "localhost:9000/users/login",
+			"name": "LOG IN",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -123,9 +49,10 @@
 					}
 				],
 				"url": {
-					"raw": "{{scalagram_host}}/users/login",
+					"raw": "scalagram.com/users/login",
 					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"users",
@@ -136,13 +63,13 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/users",
+			"name": "FOLLOW USER",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\":\"lucaspb\", \"email\": \"lucasrpb@gmail.com\", \"password\":\"1234\", \"phone\": \"4598157014\"}",
+					"raw": "{\"followeeId\": \"191e2d4d-c1c6-44fd-9f59-95e2885fc1bd\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -150,63 +77,10 @@
 					}
 				},
 				"url": {
-					"raw": "{{scalagram_host}}/users",
+					"raw": "scalagram.com/feed/follow",
 					"host": [
-						"{{scalagram_host}}"
-					],
-					"path": [
-						"users"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "localhost:9000/users/confirm/24b4c632-d370-4a1c-b12a-a641b988a089",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{scalagram_host}}/users/confirm/45d042d8-b320-4d38-817c-d02cd17c977f",
-					"host": [
-						"{{scalagram_host}}"
-					],
-					"path": [
-						"users",
-						"confirm",
-						"45d042d8-b320-4d38-817c-d02cd17c977f"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "localhost:9000/feed/follow",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\"followerId\": \"c62a6a40-7e6b-4b5c-b79d-3d485481c516\"}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{scalagram_host}}/feed/follow",
-					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"feed",
@@ -217,7 +91,7 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/posts/upload",
+			"name": "MAKE A POST",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -226,20 +100,26 @@
 					"formdata": [
 						{
 							"key": "data",
-							"value": "{\"description\":\"best dog\",\"tags\":[\"dog\"]}",
+							"value": "{\"description\": \"best phone\", \"tags\": [\"iphone\"]}",
 							"type": "text"
 						},
 						{
 							"key": "img",
 							"type": "file",
-							"src": "/D:/Users/lucas/Downloads/cacco.jpg"
+							"src": "/D:/Users/lucas/Downloads/apple-iphone-12-128gb-azul-1.png"
 						}
-					]
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
 				},
 				"url": {
-					"raw": "{{scalagram_host}}/posts/upload",
+					"raw": "scalagram.com/posts/upload",
 					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"posts",
@@ -250,27 +130,7 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/feed/posts/0/1",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{scalagram_host}}/feed/posts/0/1",
-					"host": [
-						"{{scalagram_host}}"
-					],
-					"path": [
-						"feed",
-						"posts",
-						"0",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+			"name": "POST COMMENT TO A POST",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -298,19 +158,20 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
+			"name": "GET COMMENTS OF A POST",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{scalagram_host}}/posts/comments/9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4/0/3",
+					"raw": "scalagram.com/posts/comments/fc051351-246e-4b09-aa9a-5d7c81553400/0/3",
 					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"posts",
 						"comments",
-						"9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4",
+						"fc051351-246e-4b09-aa9a-5d7c81553400",
 						"0",
 						"3"
 					]
@@ -319,13 +180,13 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/posts/comments",
+			"name": "UPDATE A COMMENT ON A POST",
 			"request": {
 				"method": "PUT",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"id\": \"3bcacbb9-ba42-4b0b-bbcf-6b7789cf2741\", \"body\": \"indeed!\"}",
+					"raw": "{\"commentId\": \"ccb822ca-6b72-40c5-ac20-456ad65376f2\", \"body\": \"indeed!\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -333,9 +194,10 @@
 					}
 				},
 				"url": {
-					"raw": "{{scalagram_host}}/posts/comments",
+					"raw": "scalagram.com/posts/comments",
 					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
 						"posts",
@@ -346,26 +208,63 @@
 			"response": []
 		},
 		{
-			"name": "localhost:9000/posts",
+			"name": "USER'S FEED",
 			"request": {
-				"method": "PUT",
+				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\"id\":\"9715ebf7-6d1a-41f2-a1d2-9820f6f0c3e4\", \"description\": \"best singer in the world\", \"tags\":[\"dion\"]}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{scalagram_host}}/posts",
+					"raw": "scalagram.com/feed/posts/0/3",
 					"host": [
-						"{{scalagram_host}}"
+						"scalagram",
+						"com"
 					],
 					"path": [
-						"posts"
+						"feed",
+						"posts",
+						"0",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "USERS THE USER FOLLOWS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "scalagram.com/feed/follow/0/10",
+					"host": [
+						"scalagram",
+						"com"
+					],
+					"path": [
+						"feed",
+						"follow",
+						"0",
+						"10"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "USER'S POSTS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "scalagram.com/posts/37014bf8-67ad-4ead-a19b-581db3568f5d/0/3",
+					"host": [
+						"scalagram",
+						"com"
+					],
+					"path": [
+						"posts",
+						"37014bf8-67ad-4ead-a19b-581db3568f5d",
+						"0",
+						"3"
 					]
 				}
 			},
